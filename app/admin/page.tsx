@@ -1,3 +1,4 @@
+import { checkAdminSession } from "@/lib/actions/admin-auth";
 import { getComponents } from "@/lib/actions/components";
 import { getAllOrders } from "@/lib/actions/orders";
 import { formatPrice } from "@/lib/types";
@@ -5,11 +6,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ComponentsClient } from "./components-client";
 import { OrdersClient } from "./orders-client";
+import AdminLoginPage from "./login/page";
 import { Cpu, ShoppingBag, Clock, CheckCircle2, IndianRupee } from "lucide-react";
 
 export const revalidate = 0; // Fresh inventory & orders
 
 export default async function AdminDashboardPage() {
+  const isAuthenticated = await checkAdminSession();
+
+  if (!isAuthenticated) {
+    return <AdminLoginPage />;
+  }
+
   const [components, orders] = await Promise.all([
     getComponents(),
     getAllOrders(),

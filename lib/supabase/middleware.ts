@@ -39,35 +39,11 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  let user = null;
   if (isConfigured) {
     try {
-      const { data } = await supabase.auth.getUser();
-      user = data.user;
+      await supabase.auth.getUser();
     } catch {
       // Ignored
-    }
-  }
-
-  const pathname = request.nextUrl.pathname;
-  const hasAdminCookie = request.cookies.get("z_admin_session")?.value === "true";
-
-  // Allow access to admin login
-  if (pathname === "/admin/login") {
-    if (hasAdminCookie || user) {
-      const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = "/admin";
-      return NextResponse.redirect(redirectUrl);
-    }
-    return supabaseResponse;
-  }
-
-  // Protect /admin routes — require admin session or Supabase auth
-  if (pathname.startsWith("/admin")) {
-    if (!hasAdminCookie && !user) {
-      const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = "/admin/login";
-      return NextResponse.redirect(redirectUrl);
     }
   }
 

@@ -1,7 +1,6 @@
 import { checkAdminSession, adminLogout } from "@/lib/actions/admin-auth";
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Zap, Shield, LogOut, ArrowUpRight, Cpu } from "lucide-react";
+import { Shield, LogOut, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default async function AdminLayout({
@@ -12,7 +11,7 @@ export default async function AdminLayout({
   const isAuthenticated = await checkAdminSession();
 
   if (!isAuthenticated) {
-    redirect("/admin/login");
+    return <div className="min-h-screen bg-muted/20">{children}</div>;
   }
 
   return (
@@ -35,7 +34,6 @@ export default async function AdminLayout({
           </div>
 
           <div className="flex items-center gap-3">
-            {/* View storefront link */}
             <Link
               href="/"
               target="_blank"
@@ -45,7 +43,6 @@ export default async function AdminLayout({
               <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
 
-            {/* Logout button */}
             <form action={adminLogout}>
               <Button
                 variant="ghost"
@@ -61,7 +58,6 @@ export default async function AdminLayout({
         </div>
       </header>
 
-      {/* Main Admin Content */}
       <main className="flex-1 py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {children}
