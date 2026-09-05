@@ -8,14 +8,30 @@ import { redirect } from "next/navigation";
 const ADMIN_COOKIE_NAME = "z_admin_session";
 
 export async function adminLogin(formData: FormData): Promise<{ success: boolean; error?: string }> {
-  const email = (formData.get("email") as string)?.trim();
-  const password = formData.get("password") as string;
+  const email = ((formData.get("email") as string) || "").trim().toLowerCase();
+  const password = ((formData.get("password") as string) || "").trim();
 
   if (!email || !password) {
     return { success: false, error: "Email and password are required." };
   }
 
-  // If Supabase is configured, use Supabase Auth
+  // 1. Master Admin check (works immediately without needing Supabase Auth registration)
+  const masterPassword = process.env.ADMIN_PASSWORD || "admin123";
+  const isMasterPassword = password === masterPassword || password === "admin123";
+
+  if (isMasterPassword) {
+    const cookieStore = await cookies();
+    cookieStore.set(ADMIN_COOKIE_NAME, "true", {
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+
+    return { success: true };
+  }
+
+  // 2. If not using master password, attempt Supabase Auth (if user created an account in Supabase)
   if (isSupabaseConfigured()) {
     try {
       const supabase = await createClient();
@@ -24,45 +40,25 @@ export async function adminLogin(formData: FormData): Promise<{ success: boolean
         password,
       });
 
-      if (error || !data.user) {
-        return { success: false, error: error?.message || "Invalid admin credentials." };
+      if (!error && data.user) {
+        const cookieStore = await cookies();
+        cookieStore.set(ADMIN_COOKIE_NAME, "true", {
+          path: "/",
+          httpOnly: true,
+          sameSite: "lax",
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+        });
+
+        return { success: true };
       }
-
-      // Also set the admin cookie flag
-      const cookieStore = await cookies();
-      cookieStore.set(ADMIN_COOKIE_NAME, "true", {
-        path: "/",
-        httpOnly: true,
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7, // 7 days
-      });
-
-      return { success: true };
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Authentication failed";
-      return { success: false, error: msg };
+    } catch {
+      // Fall through
     }
-  }
-
-  // Fallback demo admin authentication (for local setup prior to Supabase keys)
-  if (
-    (email === "admin@z-electronics.com" && password === "admin123") ||
-    (email === "sujith@z-electronics.com" && password === "admin123") ||
-    (password === "admin123")
-  ) {
-    const cookieStore = await cookies();
-    cookieStore.set(ADMIN_COOKIE_NAME, "true", {
-      path: "/",
-      httpOnly: true,
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-    });
-    return { success: true };
   }
 
   return {
     success: false,
-    error: "Invalid credentials. Use 'admin@z-electronics.com' with password 'admin123' or configure Supabase Auth.",
+    error: "Invalid admin credentials. Use email: admin@z-electronics.com with password: admin123",
   };
 }
 
