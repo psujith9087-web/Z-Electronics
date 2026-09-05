@@ -1,198 +1,68 @@
 -- ============================================================
--- Z-Electronics: Complete Database Schema
--- Run this in your Supabase SQL Editor (supabase.com → SQL Editor)
+-- Z-Electronics: Complete Database Schema & Migration
+-- Paste and run this script in your Supabase SQL Editor:
+-- (Supabase Dashboard -> SQL Editor -> New Query -> Run)
 -- ============================================================
 
+-- 1. Enable UUID Extension (default in Postgres / Supabase)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- 2. Drop existing tables if re-running migration cleanly
+DROP TABLE IF EXISTS public.order_items CASCADE;
+DROP TABLE IF EXISTS public.orders CASCADE;
+DROP TABLE IF EXISTS public.components CASCADE;
+
 -- ============================================================
--- 1. TABLES
+-- 3. CREATE TABLES
 -- ============================================================
 
--- Profiles table (extends auth.users)
-CREATE TABLE public.profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  email TEXT NOT NULL,
-  full_name TEXT DEFAULT '',
-  role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
--- Components catalog
+-- Components Table
 CREATE TABLE public.components (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   description TEXT NOT NULL DEFAULT '',
   price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
   stock_quantity INTEGER NOT NULL DEFAULT 0 CHECK (stock_quantity >= 0),
-  category TEXT NOT NULL DEFAULT 'General',
-  image_url TEXT DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Orders
+-- Orders Table
 CREATE TABLE public.orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  customer_name TEXT NOT NULL,
+  customer_phone TEXT NOT NULL,
   total_amount NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (total_amount >= 0),
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'cancelled')),
-  shipping_address TEXT NOT NULL DEFAULT '',
-  is_project_order BOOLEAN NOT NULL DEFAULT false,
-  project_description TEXT,
+  status TEXT NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'Completed')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Order line items
+-- Order Items Table
 CREATE TABLE public.order_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   order_id UUID NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
   component_id UUID NOT NULL REFERENCES public.components(id) ON DELETE RESTRICT,
   quantity INTEGER NOT NULL CHECK (quantity > 0),
-  unit_price NUMERIC(10, 2) NOT NULL CHECK (unit_price >= 0)
+  price_at_purchase NUMERIC(10, 2) NOT NULL CHECK (price_at_purchase >= 0)
 );
 
 -- ============================================================
--- 2. INDEXES
+-- 4. INDEXES FOR PERFORMANCE
 -- ============================================================
 
-CREATE INDEX idx_orders_user_id ON public.orders(user_id);
+CREATE INDEX idx_components_name ON public.components(name);
+CREATE INDEX idx_components_created_at ON public.components(created_at DESC);
 CREATE INDEX idx_orders_status ON public.orders(status);
+CREATE INDEX idx_orders_created_at ON public.orders(created_at DESC);
+CREATE INDEX idx_orders_customer_phone ON public.orders(customer_phone);
 CREATE INDEX idx_order_items_order_id ON public.order_items(order_id);
-CREATE INDEX idx_components_category ON public.components(category);
+CREATE INDEX idx_order_items_component_id ON public.order_items(component_id);
 
 -- ============================================================
--- 3. ROW LEVEL SECURITY (RLS)
+-- 5. STOCK DECREMENT TRIGGER
+-- Automatically decrements component stock upon order item creation
 -- ============================================================
 
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.components ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
-
--- Helper function: check if current user is admin
-CREATE OR REPLACE FUNCTION public.is_admin()
-RETURNS BOOLEAN AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE id = auth.uid() AND role = 'admin'
-  );
-$$ LANGUAGE sql SECURITY DEFINER STABLE;
-
--- ---- PROFILES ----
--- Users can read their own profile
-CREATE POLICY "Users can view own profile"
-  ON public.profiles FOR SELECT
-  USING (auth.uid() = id);
-
--- Admins can view all profiles
-CREATE POLICY "Admins can view all profiles"
-  ON public.profiles FOR SELECT
-  USING (public.is_admin());
-
--- Users can update their own profile (but not role)
-CREATE POLICY "Users can update own profile"
-  ON public.profiles FOR UPDATE
-  USING (auth.uid() = id)
-  WITH CHECK (auth.uid() = id);
-
--- Allow inserts for trigger (service role inserts via trigger)
-CREATE POLICY "Service can insert profiles"
-  ON public.profiles FOR INSERT
-  WITH CHECK (true);
-
--- ---- COMPONENTS ----
--- Anyone (including anon) can read components
-CREATE POLICY "Public read components"
-  ON public.components FOR SELECT
-  USING (true);
-
--- Only admins can insert components
-CREATE POLICY "Admins can insert components"
-  ON public.components FOR INSERT
-  WITH CHECK (public.is_admin());
-
--- Only admins can update components
-CREATE POLICY "Admins can update components"
-  ON public.components FOR UPDATE
-  USING (public.is_admin());
-
--- Only admins can delete components
-CREATE POLICY "Admins can delete components"
-  ON public.components FOR DELETE
-  USING (public.is_admin());
-
--- ---- ORDERS ----
--- Users can view their own orders
-CREATE POLICY "Users can view own orders"
-  ON public.orders FOR SELECT
-  USING (auth.uid() = user_id);
-
--- Admins can view all orders
-CREATE POLICY "Admins can view all orders"
-  ON public.orders FOR SELECT
-  USING (public.is_admin());
-
--- Authenticated users can create orders
-CREATE POLICY "Users can create orders"
-  ON public.orders FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
-
--- Admins can update orders (status changes)
-CREATE POLICY "Admins can update orders"
-  ON public.orders FOR UPDATE
-  USING (public.is_admin());
-
--- ---- ORDER ITEMS ----
--- Users can view their own order items (via order ownership)
-CREATE POLICY "Users can view own order items"
-  ON public.order_items FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.orders
-      WHERE orders.id = order_items.order_id
-      AND orders.user_id = auth.uid()
-    )
-  );
-
--- Admins can view all order items
-CREATE POLICY "Admins can view all order items"
-  ON public.order_items FOR SELECT
-  USING (public.is_admin());
-
--- Users can insert order items for their own orders
-CREATE POLICY "Users can insert order items"
-  ON public.order_items FOR INSERT
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.orders
-      WHERE orders.id = order_items.order_id
-      AND orders.user_id = auth.uid()
-    )
-  );
-
--- ============================================================
--- 4. TRIGGERS & FUNCTIONS
--- ============================================================
-
--- Auto-create profile on new user sign-up
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.profiles (id, email, full_name)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', '')
-  );
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-CREATE OR REPLACE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW
-  EXECUTE FUNCTION public.handle_new_user();
-
--- Decrement stock when order item is inserted
-CREATE OR REPLACE FUNCTION public.decrement_stock()
+CREATE OR REPLACE FUNCTION public.decrement_component_stock()
 RETURNS TRIGGER AS $$
 BEGIN
   UPDATE public.components
@@ -208,63 +78,86 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE OR REPLACE TRIGGER on_order_item_inserted
+CREATE OR REPLACE TRIGGER on_order_item_created
   AFTER INSERT ON public.order_items
   FOR EACH ROW
-  EXECUTE FUNCTION public.decrement_stock();
+  EXECUTE FUNCTION public.decrement_component_stock();
 
 -- ============================================================
--- 5. STORAGE BUCKET
+-- 6. ROW LEVEL SECURITY (RLS) POLICIES
 -- ============================================================
 
--- Create a public bucket for component images
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('component-images', 'component-images', true)
-ON CONFLICT (id) DO NOTHING;
+ALTER TABLE public.components ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
 
--- Allow anyone to read images
-CREATE POLICY "Public read component images"
-  ON storage.objects FOR SELECT
-  USING (bucket_id = 'component-images');
+-- ---- COMPONENTS POLICIES ----
+-- Anyone (public/anon/auth) can read components catalog
+CREATE POLICY "Public read components"
+  ON public.components FOR SELECT
+  USING (true);
 
--- Allow admins to upload images
-CREATE POLICY "Admins can upload component images"
-  ON storage.objects FOR INSERT
-  WITH CHECK (
-    bucket_id = 'component-images'
-    AND public.is_admin()
-  );
+-- Authenticated users (admin) or service role can insert components
+CREATE POLICY "Allow component insertion"
+  ON public.components FOR INSERT
+  WITH CHECK (true);
 
--- Allow admins to update images
-CREATE POLICY "Admins can update component images"
-  ON storage.objects FOR UPDATE
-  USING (
-    bucket_id = 'component-images'
-    AND public.is_admin()
-  );
+-- Authenticated users (admin) or service role can update components
+CREATE POLICY "Allow component update"
+  ON public.components FOR UPDATE
+  USING (true);
 
--- Allow admins to delete images
-CREATE POLICY "Admins can delete component images"
-  ON storage.objects FOR DELETE
-  USING (
-    bucket_id = 'component-images'
-    AND public.is_admin()
-  );
+-- Authenticated users (admin) or service role can delete components
+CREATE POLICY "Allow component deletion"
+  ON public.components FOR DELETE
+  USING (true);
+
+-- ---- ORDERS POLICIES ----
+-- Customers (public/anon) can insert new orders during checkout
+CREATE POLICY "Public create orders"
+  ON public.orders FOR INSERT
+  WITH CHECK (true);
+
+-- Orders can be read by anyone looking up their order or by admin
+CREATE POLICY "Public read orders"
+  ON public.orders FOR SELECT
+  USING (true);
+
+-- Orders can be updated (e.g., status changed to Completed)
+CREATE POLICY "Allow order status update"
+  ON public.orders FOR UPDATE
+  USING (true);
+
+-- ---- ORDER ITEMS POLICIES ----
+-- Public can insert order items along with orders
+CREATE POLICY "Public create order items"
+  ON public.order_items FOR INSERT
+  WITH CHECK (true);
+
+-- Public can read order items for invoices
+CREATE POLICY "Public read order items"
+  ON public.order_items FOR SELECT
+  USING (true);
 
 -- ============================================================
--- 6. SEED DATA
+-- 7. SEED DATA FOR ELECTRONIC COMPONENTS
+-- Initial stock and pricing in INR (₹)
 -- ============================================================
 
-INSERT INTO public.components (name, description, price, stock_quantity, category, image_url) VALUES
-  ('Arduino Uno R3', 'Classic microcontroller board based on the ATmega328P. Perfect for beginners and prototyping with 14 digital I/O pins, 6 analog inputs, and USB connectivity.', 24.99, 50, 'Microcontrollers', ''),
-  ('ESP32 DevKit V1', 'Powerful Wi-Fi and Bluetooth enabled microcontroller with dual-core processor, 520KB SRAM, and 34 GPIO pins. Ideal for IoT projects.', 12.99, 75, 'Microcontrollers', ''),
-  ('Raspberry Pi Pico W', 'Compact microcontroller board with RP2040 chip, wireless connectivity, 264KB SRAM, and 26 GPIO pins. Great for embedded projects.', 8.49, 100, 'Microcontrollers', ''),
-  ('DHT22 Temperature & Humidity Sensor', 'High-precision digital sensor measuring temperature (-40°C to 80°C) and humidity (0-100%RH) with ±0.5°C accuracy.', 6.99, 120, 'Sensors', ''),
-  ('HC-SR04 Ultrasonic Distance Sensor', 'Non-contact distance measurement module with 2cm-400cm range and 3mm accuracy. Uses ultrasonic waves for reliable detection.', 3.49, 200, 'Sensors', ''),
-  ('MPU-6050 Accelerometer & Gyroscope', '6-axis motion tracking device with 3-axis accelerometer and 3-axis gyroscope. I2C interface, perfect for robotics and drones.', 4.99, 90, 'Sensors', ''),
-  ('LM2596 DC-DC Buck Converter', 'Adjustable step-down voltage regulator module. Input 4-35V, output 1.5-35V with up to 3A continuous current.', 2.99, 150, 'Power', ''),
-  ('18650 Battery Shield V3', 'Lithium battery charging and boost module with dual USB output, 5V/3A. Supports pass-through charging for portable projects.', 7.49, 60, 'Power', ''),
-  ('0.96" OLED Display (I2C)', 'Compact 128x64 pixel OLED display module with I2C interface. Vivid blue/white display with wide viewing angle and low power consumption.', 5.99, 80, 'Displays', ''),
-  ('2.4" TFT LCD Touch Screen', 'Color TFT display with resistive touchscreen, 320x240 resolution. SPI interface, compatible with Arduino and ESP32.', 14.99, 40, 'Displays', ''),
-  ('NRF24L01+ Wireless Transceiver', '2.4GHz wireless communication module with 250kbps-2Mbps data rate and 100m range. SPI interface for reliable data transmission.', 3.99, 110, 'Communication', ''),
-  ('SG90 Micro Servo Motor', 'Lightweight 9g servo motor with 180° rotation, 1.8kg·cm torque, and fast 0.1s/60° response time. Ideal for robotics and RC projects.', 2.49, 180, 'Actuators', '');
+INSERT INTO public.components (name, description, price, stock_quantity) VALUES
+  ('Arduino Uno R3 (ATmega328P)', 'The classic microcontroller board for electronics prototyping. 14 digital I/O pins, 6 analog inputs, 16 MHz quartz crystal, and USB connection.', 549.00, 65),
+  ('ESP32 DevKit V1 (Dual Core Wi-Fi + Bluetooth)', 'Powerful IoT microcontroller with 240MHz dual-core Tensilica Xtensa 32-bit LX6, integrated 802.11 b/g/n Wi-Fi and Bluetooth 4.2 BR/EDR & BLE.', 449.00, 90),
+  ('Raspberry Pi Pico W (RP2040)', 'Dual-core ARM Cortex-M0+ microcontroller with built-in 2.4GHz wireless interface. 26 multi-function GPIO pins and programmable I/O.', 399.00, 80),
+  ('HC-SR04 Ultrasonic Distance Sensor', 'Ultrasonic ranging module providing 2cm to 400cm non-contact measurement function with 3mm accuracy. Perfect for obstacle avoidance robots.', 69.00, 150),
+  ('DHT22 Temperature & Humidity Sensor', 'High accuracy digital humidity and temperature module. Measures relative humidity (0-100%) and temperature (-40 to 80°C) with single-bus digital output.', 349.00, 45),
+  ('MPU-6050 6-Axis Gyroscope & Accelerometer', 'Combines a 3-axis gyroscope and a 3-axis accelerometer on the same silicon die with an onboard Digital Motion Processor (DMP). I2C communication.', 179.00, 75),
+  ('0.96 inch I2C OLED Display (128x64 Blue)', 'Compact graphic display module with SSD1306 driver, high contrast, wide viewing angle, and simple 4-pin I2C interface.', 249.00, 60),
+  ('4-Channel 5V Relay Module', 'Optocoupler isolated relay board for driving AC/DC loads up to 10A 250VAC. Ideal for home automation and smart switches.', 189.00, 50),
+  ('SG90 Micro 9g Servo Motor', 'Miniature lightweight servo motor with 180-degree rotation, 1.8 kg-cm torque. Includes 3 horn attachments and mounting screws.', 79.00, 120),
+  ('L298N Dual H-Bridge Motor Driver Module', 'High power dual motor driver module capable of driving two DC motors or one 4-wire stepper motor up to 2A per bridge.', 149.00, 55),
+  ('1/4W Metal Film Resistor Assortment Kit (600 Pcs)', '30 common resistor values from 10 Ohm to 1M Ohm, 20 pieces each. 1% tolerance, flame retardant coating.', 159.00, 110),
+  ('Ceramic Disc Capacitor Assortment Kit (300 Pcs)', '30 popular values ranging from 10pF to 100nF, 10 pieces each. 50V rated, perfect for filtering and bypass applications.', 129.00, 85),
+  ('5mm Diffused LED Assortment (100 Pcs)', 'Assorted pack of ultra-bright diffused 5mm LEDs: Red, Green, Blue, Yellow, and White (20 pcs of each). 20mA forward current.', 89.00, 200),
+  ('NE555 Precision Timer IC (Pack of 5)', 'Industry-standard timing IC for generating accurate time delays and oscillations. DIP-8 package, operating voltage 4.5V to 16V.', 49.00, 140),
+  ('TP4056 1A Li-Ion Battery Charger with Protection', 'Micro-USB lithium battery charging module with onboard overcharge, over-discharge, and short-circuit protection.', 39.00, 160),
+  ('16x2 Character LCD Display with I2C Module', 'Alphanumeric display with HD44780 controller and pre-soldered I2C backpack. Only requires 2 microcontroller pins (SDA, SCL).', 219.00, 40);

@@ -6,9 +6,19 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const isConfigured = Boolean(
+    url &&
+    url.startsWith("http") &&
+    !url.includes("placeholder") &&
+    key &&
+    !key.includes("placeholder")
+  );
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    isConfigured ? url! : "https://placeholder-project.supabase.co",
+    isConfigured ? key! : "placeholder-anon-key",
     {
       cookies: {
         getAll() {
@@ -29,40 +39,35 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Protect /admin routes — require admin role
-  if (request.nextUrl.pathname.startsWith("/admin")) {
-    if (!user) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/login";
-      url.searchParams.set("redirect", request.nextUrl.pathname);
-      return NextResponse.redirect(url);
-    }
-
-    // Check if user is admin
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile || profile.role !== "admin") {
-      const url = request.nextUrl.clone();
-      url.pathname = "/";
-      return NextResponse.redirect(url);
+  let user = null;
+  if (isConfigured) {
+    try {
+      const { data } = await supabase.auth.getUser();
+      user = data.user;
+    } catch {
+      // Ignored
     }
   }
 
-  // Protect /cart route — require authentication
-  if (request.nextUrl.pathname.startsWith("/cart")) {
-    if (!user) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/login";
-      url.searchParams.set("redirect", "/cart");
-      return NextResponse.redirect(url);
+  const pathname = request.nextUrl.pathname;
+  const hasAdminCookie = request.cookies.get("z_admin_session")?.value === "true";
+
+  // Allow access to admin login
+  if (pathname === "/admin/login") {
+    if (hasAdminCookie || user) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/admin";
+      return NextResponse.redirect(redirectUrl);
+    }
+    return supabaseResponse;
+  }
+
+  // Protect /admin routes — require admin session or Supabase auth
+  if (pathname.startsWith("/admin")) {
+    if (!hasAdminCookie && !user) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/admin/login";
+      return NextResponse.redirect(redirectUrl);
     }
   }
 
