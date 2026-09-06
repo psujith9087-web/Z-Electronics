@@ -4,7 +4,7 @@ import { useState } from "react";
 import { OrderStatus } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { updateOrderStatus } from "@/lib/actions/admin";
+import { updateOrderStatus } from "@/lib/actions/orders";
 import { toast } from "sonner";
 
 export function OrderStatusUpdater({ orderId, currentStatus }: { orderId: string, currentStatus: OrderStatus }) {
@@ -18,11 +18,11 @@ export function OrderStatusUpdater({ orderId, currentStatus }: { orderId: string
     try {
       const res = await updateOrderStatus(orderId, status);
       if (res.success) {
-        toast.success("Order status updated successfully");
+        toast.success(`Order #${orderId.slice(0, 8)} status updated to ${status}`);
       } else {
         toast.error(res.error || "Failed to update order status");
       }
-    } catch (err) {
+    } catch {
       toast.error("An unexpected error occurred");
     } finally {
       setLoading(false);
@@ -32,19 +32,16 @@ export function OrderStatusUpdater({ orderId, currentStatus }: { orderId: string
   return (
     <div className="flex items-center gap-3">
       <Select value={status} onValueChange={(val) => setStatus(val as OrderStatus)}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-[200px]">
           <SelectValue placeholder="Select status" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="pending">Pending</SelectItem>
-          <SelectItem value="paid">Paid</SelectItem>
-          <SelectItem value="shipped">Shipped</SelectItem>
-          <SelectItem value="delivered">Delivered</SelectItem>
-          <SelectItem value="cancelled">Cancelled</SelectItem>
+          <SelectItem value="Pending">Pending (Processing / Review)</SelectItem>
+          <SelectItem value="Completed">Completed (Fulfilled / Delivered)</SelectItem>
         </SelectContent>
       </Select>
       <Button onClick={handleUpdate} disabled={loading || status === currentStatus}>
-        {loading ? "Updating..." : "Update Status"}
+        {loading ? "Updating..." : "Save Status"}
       </Button>
     </div>
   );

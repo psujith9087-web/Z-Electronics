@@ -114,6 +114,8 @@ export async function createOrder(data: OrderCreationData): Promise<{ success: b
   }
 }
 
+import { getCustomerSession } from "@/lib/actions/auth";
+
 export async function getAllOrders(): Promise<Order[]> {
   try {
     if (!isSupabaseConfigured()) {
@@ -132,7 +134,7 @@ export async function getAllOrders(): Promise<Order[]> {
       `)
       .order("created_at", { ascending: false });
 
-    if (error || !data || data.length === 0) {
+    if (error || !data) {
       return MOCK_ORDERS;
     }
 
@@ -185,6 +187,8 @@ export async function updateOrderStatus(
         order.status = status;
       }
       revalidatePath("/admin");
+      revalidatePath("/orders");
+      revalidatePath(`/orders/${orderId}`);
       return { success: true };
     }
 
@@ -199,6 +203,10 @@ export async function updateOrderStatus(
     }
 
     revalidatePath("/admin");
+    revalidatePath("/admin/orders");
+    revalidatePath(`/admin/orders/${orderId}`);
+    revalidatePath("/orders");
+    revalidatePath(`/orders/${orderId}`);
     return { success: true };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to update order status";
@@ -206,8 +214,92 @@ export async function updateOrderStatus(
   }
 }
 
-export async function getMyOrders(): Promise<Order[]> {
-  return getAllOrders();
+export async function getMyOrders(phoneOverride?: string): Promise<Order[]> {
+  try {
+    let targetPhone = phoneOverride?.replace(/\D/g, "");
+
+    if (!targetPhone) {
+      const session = await getCustomerSession();
+      if (session?.phone) {
+        targetPhone = session.phone.replace(/\D/g, "");
+      }
+    }
+
+    if (!targetPhone) {
+      return [];
+    }
+
+    if (!isSupabaseConfigured()) {
+      return MOCK_ORDERS.filter((o) => o.customer_phone.replace(/\D/g, "").includes(targetPhone!));
+    }
+
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("orders")
+      .select(`
+        *,
+        order_items (
+          *,
+          components (*)
+        )
+      `)
+      .ilike("customer_phone", `%${targetPhone}%`)
+      .order("created_at", { ascending: false });
+
+    if (error || !data) {
+      return [];
+    }
+
+    return data as Order[];
+  } catch (err) {
+    console.error("Error fetching customer orders:", err);
+    return [];
+  }
+}
+
+export async function searchOrders(query: string): Promise<Order[]> {
+  const trimmed = query.trim();
+  if (!trimmed) return [];
+
+  try {
+    if (!isSupabaseConfigured()) {
+      const cleanQ = trimmed.toLowerCase();
+      return MOCK_ORDERS.filter(
+        (o) =>
+          o.id.toLowerCase().includes(cleanQ) ||
+          o.customer_phone.includes(cleanQ) ||
+          o.customer_name.toLowerCase().includes(cleanQ)
+      );
+    }
+
+    const supabase = await createClient();
+    const digitsOnly = trimmed.replace(/\D/g, "");
+
+    let ordersQuery = supabase.from("orders").select(`
+      *,
+      order_items (
+        *,
+        components (*)
+      )
+    `);
+
+    if (digitsOnly.length >= 7) {
+      ordersQuery = ordersQuery.ilike("customer_phone", `%${digitsOnly}%`);
+    } else {
+      ordersQuery = ordersQuery.or(`id.ilike.%${trimmed}%,customer_name.ilike.%${trimmed}%`);
+    }
+
+    const { data, error } = await ordersQuery.order("created_at", { ascending: false }).limit(10);
+
+    if (error || !data) {
+      return [];
+    }
+
+    return data as Order[];
+  } catch (err) {
+    console.error("Error searching orders:", err);
+    return [];
+  }
 }
 
 export async function getOrderStats() {

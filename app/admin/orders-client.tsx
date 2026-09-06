@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Search, Phone, MessageSquare, Eye, CheckCircle2, Clock, Package, Loader2 } from "lucide-react";
+import { Search, Phone, MessageSquare, Eye, CheckCircle2, Clock, Package, Loader2, ExternalLink } from "lucide-react";
+import Link from "next/link";
 import { toast } from "sonner";
 
 interface OrdersClientProps {
@@ -217,15 +218,28 @@ export function OrdersClient({ initialOrders }: OrdersClientProps) {
                   </TableCell>
 
                   <TableCell className="py-4 px-4 text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleViewOrder(order)}
-                      className="h-8 gap-1 text-xs text-muted-foreground hover:text-foreground"
-                    >
-                      <Eye className="h-3.5 w-3.5" />
-                      View Items
-                    </Button>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <Link href={`/orders/${order.id}`} target="_blank" rel="noopener noreferrer">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 gap-1 text-[11px] font-semibold"
+                          title="View live customer tracking page"
+                        >
+                          <ExternalLink className="h-3 w-3 text-primary" />
+                          Track
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewOrder(order)}
+                        className="h-8 gap-1 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        Items
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               );

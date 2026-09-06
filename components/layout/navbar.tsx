@@ -10,10 +10,12 @@ import {
   MessageSquare,
   Phone,
   Layers,
+  Package,
 } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CustomerAccountBtn } from "./customer-account-btn";
 
 // Hydration-safe helper to detect client mounting without triggering setState in useEffect
 const emptySubscribe = () => () => {};
@@ -111,6 +113,13 @@ export function Navbar() {
             Catalog
           </Link>
           <Link
+            href="/orders"
+            className="flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-foreground/80 hover:text-foreground hover:bg-foreground/5 transition-all"
+          >
+            <Package className="h-3.5 w-3.5 text-primary" />
+            Track Orders
+          </Link>
+          <Link
             href="/cart"
             className="flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-foreground/80 hover:text-foreground hover:bg-foreground/5 transition-all"
           >
@@ -130,6 +139,9 @@ export function Navbar() {
 
         {/* Right actions */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Customer Account & Order Portal */}
+          <CustomerAccountBtn />
+
           {/* Theme toggle */}
           {isClient && (
             <Button

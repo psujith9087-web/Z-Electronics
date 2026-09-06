@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/lib/store/cart-store";
 import { formatPrice, Order } from "@/lib/types";
 import { createOrder } from "@/lib/actions/orders";
+import { getCustomerSession } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,6 +48,15 @@ export default function CheckoutPage() {
   const [projectNote, setProjectNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
+
+  useEffect(() => {
+    getCustomerSession().then((sess) => {
+      if (sess) {
+        if (sess.name) setCustomerName((prev) => prev || sess.name);
+        if (sess.phone) setCustomerPhone((prev) => prev || sess.phone);
+      }
+    });
+  }, []);
 
   if (!isClient) {
     return (
