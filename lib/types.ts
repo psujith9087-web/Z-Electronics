@@ -26,14 +26,18 @@ export interface Order {
   customer_name: string;
   customer_phone: string;
   total_amount: number;
-  status: "Pending" | "Completed" | any;
+  status: "Pending" | "Completed" | "paid" | "shipped" | "delivered" | "cancelled" | any;
   created_at: string;
   order_items?: OrderItem[];
   profiles?: any;
   guest_email?: string;
   guest_phone?: string;
   shipping_address?: any;
-  payment_method?: string;
+  payment_method?: "cod" | "razorpay" | "upi_qr" | string;
+  payment_status?: "pending" | "paid" | "failed";
+  payment_id?: string;
+  tracking_number?: string;
+  courier_name?: string;
   user_id?: string | null;
 }
 
@@ -60,12 +64,28 @@ export interface CartItem {
 export interface OrderCreationData {
   customer_name: string;
   customer_phone: string;
+  payment_method?: "cod" | "razorpay" | "upi_qr" | string;
+  payment_status?: "pending" | "paid" | "failed";
+  payment_id?: string;
+  shipping_address?: any;
   items: {
     component_id: string;
     quantity: number;
     price: number;
     name?: string;
   }[];
+}
+
+export interface PaymentConfig {
+  upiId: string;
+  payeeName: string;
+  qrImageUrl: string;
+  phone: string;
+  note?: string;
+  razorpayKeyId?: string;
+  razorpayKeySecret?: string;
+  razorpayEnabled?: boolean;
+  codEnabled?: boolean;
 }
 
 // ── Backwards compatibility types for legacy routes ──

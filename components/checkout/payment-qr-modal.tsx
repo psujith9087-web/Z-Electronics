@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PaymentConfig } from "@/lib/actions/payment";
-import { formatPrice } from "@/lib/types";
+import { formatPrice, PaymentConfig } from "@/lib/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

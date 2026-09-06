@@ -36,9 +36,42 @@ CREATE TABLE public.orders (
   customer_name TEXT NOT NULL,
   customer_phone TEXT NOT NULL,
   total_amount NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (total_amount >= 0),
-  status TEXT NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'Completed')),
+  status TEXT NOT NULL DEFAULT 'Pending',
+  payment_method TEXT DEFAULT 'cod',
+  payment_status TEXT DEFAULT 'pending',
+  payment_id TEXT DEFAULT '',
+  shipping_address JSONB DEFAULT '{}'::jsonb,
+  tracking_number TEXT DEFAULT '',
+  courier_name TEXT DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Migration helpers for existing databases
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT 'cod';
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT 'pending';
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS payment_id TEXT DEFAULT '';
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS shipping_address JSONB DEFAULT '{}'::jsonb;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS tracking_number TEXT DEFAULT '';
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS courier_name TEXT DEFAULT '';
+
+-- Payment Settings Table (Stored in database to avoid read-only filesystem EROFS crashes)
+CREATE TABLE IF NOT EXISTS public.payment_settings (
+  id TEXT PRIMARY KEY DEFAULT 'default',
+  upi_id TEXT NOT NULL DEFAULT 'psujith9087-1@okicici',
+  payee_name TEXT NOT NULL DEFAULT 'Z-Electronics (Sujith)',
+  phone TEXT NOT NULL DEFAULT '8072726924',
+  note TEXT DEFAULT 'Scan to pay using Google Pay, PhonePe, Paytm, or any UPI app',
+  qr_image_url TEXT DEFAULT '',
+  razorpay_key_id TEXT DEFAULT '',
+  razorpay_key_secret TEXT DEFAULT '',
+  razorpay_enabled BOOLEAN DEFAULT true,
+  cod_enabled BOOLEAN DEFAULT true,
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+INSERT INTO public.payment_settings (id, upi_id, payee_name, phone, note, qr_image_url)
+VALUES ('default', 'psujith9087-1@okicici', 'Z-Electronics (Sujith)', '8072726924', 'Scan to pay using Google Pay, PhonePe, Paytm, or any UPI app', '')
+ON CONFLICT (id) DO NOTHING;
 
 -- Order Items Table
 CREATE TABLE public.order_items (
@@ -152,6 +185,18 @@ CREATE POLICY "Public read order items"
 CREATE POLICY "Allow order items deletion"
   ON public.order_items FOR DELETE
   USING (true);
+
+-- ---- PAYMENT SETTINGS POLICIES ----
+ALTER TABLE public.payment_settings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public read payment settings"
+  ON public.payment_settings FOR SELECT
+  USING (true);
+
+CREATE POLICY "Allow update payment settings"
+  ON public.payment_settings FOR ALL
+  USING (true)
+  WITH CHECK (true);
 
 -- ============================================================
 -- 7. SEED DATA FOR ELECTRONIC COMPONENTS

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, FileText, Truck, Cpu, ShieldCheck } from "lucide-react";
+import { DreamyButterflies } from "@/components/effects/dreamy-butterflies";
 
 export default function HeroSection() {
   // Out-of-focus neon particles (cyan and purple)
@@ -52,11 +53,29 @@ export default function HeroSection() {
         ))}
       </div>
 
+      {/* -- 3.5. Dreamy Bioluminescent Butterflies Flying in Background --- */}
+      <DreamyButterflies />
+
       {/* -- 4. Content Area ---------------------------------------------- */}
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 text-center z-10">
-        {/* Sleek B2B Verification Pill */}
-        <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800/80 bg-zinc-900/60 px-3.5 py-1 text-xs font-medium text-zinc-400 backdrop-blur-md mb-8 transition-colors hover:border-zinc-700">
-          <span className="flex h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee] animate-pulse" />
+        {/* Flagship Center Logo Emblem with Neon Ambient Glow */}
+        <div className="relative mx-auto mb-6 flex items-center justify-center">
+          <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-amber-500/25 via-cyan-500/25 to-purple-500/25 blur-xl opacity-75 animate-pulse" />
+          <div className="relative flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full p-1.5 ring-2 ring-amber-500/40 bg-zinc-950/80 backdrop-blur-xl shadow-[0_0_35px_rgba(245,158,11,0.25)] hover:shadow-[0_0_50px_rgba(245,158,11,0.45)] transition-all duration-300 hover:scale-105 group">
+            <img
+              src="/logo.png"
+              alt="Z-Electronics Official Logo"
+              className="h-full w-full object-cover rounded-full ring-1 ring-white/10 transition-transform duration-300 group-hover:scale-110"
+            />
+          </div>
+        </div>
+
+        {/* Sleek B2B Verification Pill with Brand Avatar */}
+        <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800/80 bg-zinc-900/60 pl-2 pr-3.5 py-1 text-xs font-medium text-zinc-400 backdrop-blur-md mb-8 transition-colors hover:border-zinc-700">
+          <div className="h-4 w-4 rounded-full overflow-hidden ring-1 ring-amber-500/40 shrink-0">
+            <img src="/logo.png" alt="Z" className="h-full w-full object-cover" />
+          </div>
+          <span className="flex h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee] animate-pulse" />
           <span className="text-zinc-200 font-semibold">Z-Electronics</span>
           <span className="text-zinc-600">•</span>
           <span>Silicon & Prototyping Hardware</span>

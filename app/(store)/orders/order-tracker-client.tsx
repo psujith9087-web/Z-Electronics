@@ -21,7 +21,9 @@ import {
   ShieldCheck,
   ShoppingBag,
   Loader2,
-  ExternalLink,
+  CreditCard,
+  Truck,
+  Cpu,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -71,20 +73,20 @@ export function OrderTrackerClient({ session, initialOrders }: OrderTrackerClien
     <div className="space-y-8">
       {/* Session Welcome Banner (if logged in) */}
       {session ? (
-        <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-lg shadow">
+        <div className="rounded-3xl border-2 border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="h-12 w-12 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center font-extrabold text-xl shadow">
               {session.name.charAt(0).toUpperCase()}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-foreground">Welcome back, {session.name}!</h2>
-                <Badge variant="outline" className="text-[10px] font-bold border-primary/40 text-primary">
-                  Verified Customer
+                <h2 className="text-lg font-black text-foreground">Welcome back, {session.name}!</h2>
+                <Badge className="text-[10px] font-extrabold bg-primary text-primary-foreground">
+                  Logged In Customer
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2">
-                <Phone className="h-3 w-3" />
+              <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2 font-medium">
+                <Phone className="h-3.5 w-3.5 text-emerald-500" />
                 <span>+91 {session.phone}</span>
                 {session.email && (
                   <>
@@ -96,38 +98,38 @@ export function OrderTrackerClient({ session, initialOrders }: OrderTrackerClien
             </div>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Link href="/" className="w-full sm:w-auto">
-              <Button size="sm" variant="outline" className="w-full text-xs font-semibold">
+            <Link href="/shop" className="w-full sm:w-auto">
+              <Button size="sm" variant="outline" className="w-full text-xs font-bold rounded-xl hover:-translate-y-0.5 active:translate-y-0.5 transition-all">
                 Browse Components
               </Button>
             </Link>
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl border border-border/80 bg-muted/30 p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="rounded-3xl border-2 border-border/80 bg-muted/30 p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h2 className="text-base font-bold text-foreground">Have a Customer Account?</h2>
-            <p className="text-xs text-muted-foreground">
-              Sign in with your mobile number or email to automatically sync and access all your orders.
+            <h2 className="text-base font-black text-foreground">Track via Your Account or Phone</h2>
+            <p className="text-xs text-muted-foreground font-medium">
+              Log into your account to automatically load your hardware order history, or enter your phone number below.
             </p>
           </div>
           <Link href="/login?redirect=/orders">
-            <Button size="sm" className="font-bold text-xs gap-1.5 shadow-sm">
+            <Button size="sm" className="font-extrabold text-xs gap-1.5 shadow rounded-xl hover:-translate-y-0.5 active:translate-y-0.5 transition-all">
               <User className="h-3.5 w-3.5" />
-              Customer Sign In
+              Sign In to Account
             </Button>
           </Link>
         </div>
       )}
 
       {/* Quick Search & Track Form */}
-      <div className="bg-card border rounded-2xl p-6 shadow-sm space-y-4">
+      <div className="bg-card border-2 rounded-3xl p-6 shadow-xs space-y-3">
         <div>
-          <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">
-            Instant Order Tracking
+          <h3 className="text-sm font-extrabold text-foreground uppercase tracking-wider">
+            Live Package & Order Lookup
           </h3>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Enter your 10-digit mobile number or Order ID to track real-time fulfillment status.
+          <p className="text-xs text-muted-foreground mt-0.5 font-medium">
+            Enter your 10-digit mobile number or Order ID to inspect component testing and dispatch progress.
           </p>
         </div>
 
@@ -138,16 +140,25 @@ export function OrderTrackerClient({ session, initialOrders }: OrderTrackerClien
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Enter mobile number (e.g. 8072726924) or Order ID..."
-              className="pl-10 h-11 bg-background text-sm"
+              className="pl-10 h-11 bg-background text-sm rounded-2xl"
             />
           </div>
           <div className="flex items-center gap-2">
-            <Button type="submit" disabled={isSearching} className="h-11 px-6 font-bold text-xs gap-2">
+            <Button
+              type="submit"
+              disabled={isSearching}
+              className="h-11 px-6 font-extrabold text-xs gap-2 rounded-2xl shadow hover:-translate-y-0.5 active:translate-y-0.5 transition-all"
+            >
               {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
               Track Order
             </Button>
             {searched && (
-              <Button type="button" variant="ghost" onClick={handleReset} className="h-11 px-4 text-xs font-semibold">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleReset}
+                className="h-11 px-4 text-xs font-bold rounded-2xl"
+              >
                 Reset
               </Button>
             )}
@@ -158,34 +169,34 @@ export function OrderTrackerClient({ session, initialOrders }: OrderTrackerClien
       {/* Orders List Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
+          <h3 className="text-lg font-black tracking-tight text-foreground flex items-center gap-2">
             <Package className="h-5 w-5 text-primary" />
             <span>
               {searched ? "Search Results" : session ? "Your Order History" : "Recent Orders"}
             </span>
-            <Badge variant="secondary" className="text-xs font-mono">
+            <Badge variant="secondary" className="text-xs font-mono font-bold">
               {orders.length}
             </Badge>
           </h3>
         </div>
 
         {orders.length === 0 ? (
-          <div className="rounded-2xl border border-dashed p-12 text-center bg-muted/20 space-y-4">
+          <div className="rounded-3xl border-2 border-dashed p-12 text-center bg-muted/10 space-y-4">
             <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center mx-auto text-muted-foreground">
               <ShoppingBag className="h-7 w-7" />
             </div>
             <div>
               <h4 className="text-base font-bold text-foreground">No orders found</h4>
-              <p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1">
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1 font-medium">
                 {searched
-                  ? `No orders matching "${searchQuery}". Please check the phone number or order ID.`
-                  : "You haven't placed any component orders yet with this account."}
+                  ? `No orders matching "${searchQuery}". Please verify your phone number or Order ID.`
+                  : "You haven't placed any electronic component orders yet with this account."}
               </p>
             </div>
             <div className="pt-2">
-              <Link href="/">
-                <Button size="sm" className="font-semibold text-xs">
-                  Start Component Shopping
+              <Link href="/shop">
+                <Button size="sm" className="font-bold text-xs rounded-xl shadow hover:-translate-y-0.5 active:translate-y-0.5 transition-all">
+                  Browse Components Catalog
                 </Button>
               </Link>
             </div>
@@ -197,7 +208,12 @@ export function OrderTrackerClient({ session, initialOrders }: OrderTrackerClien
                 dateStyle: "medium",
                 timeStyle: "short",
               });
-              const isCompleted = order.status === "Completed";
+              const isCompleted = order.status === "Completed" || order.status === "delivered";
+              const isPaid =
+                order.payment_status === "paid" ||
+                order.status === "Completed" ||
+                order.status === "paid";
+
               const itemCount = order.order_items?.length || 0;
 
               const cleanPhone = order.customer_phone.replace(/\D/g, "");
@@ -208,21 +224,20 @@ export function OrderTrackerClient({ session, initialOrders }: OrderTrackerClien
               return (
                 <Card
                   key={order.id}
-                  className="border rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden"
+                  className="border-2 rounded-3xl shadow-xs hover:shadow-md transition-all overflow-hidden bg-card"
                 >
                   <CardContent className="p-6">
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                       {/* Left: Metadata & Status */}
-                      <div className="space-y-2">
+                      <div className="space-y-3 flex-1">
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                          <span className="font-mono font-extrabold text-sm text-foreground">
+                          <span className="font-mono font-black text-sm text-foreground">
                             #{order.id.slice(0, 10).toUpperCase()}
                           </span>
                           <span className="text-xs text-muted-foreground">•</span>
-                          <span className="text-xs text-muted-foreground">{orderDate}</span>
+                          <span className="text-xs text-muted-foreground font-medium">{orderDate}</span>
                           <Badge
-                            variant={isCompleted ? "default" : "outline"}
-                            className={`text-xs px-2.5 py-0.5 font-bold flex items-center gap-1.5 ${
+                            className={`text-xs px-2.5 py-0.5 font-extrabold flex items-center gap-1.5 ${
                               isCompleted
                                 ? "bg-emerald-600 text-white"
                                 : "border-amber-500 text-amber-600 bg-amber-500/10"
@@ -235,44 +250,82 @@ export function OrderTrackerClient({ session, initialOrders }: OrderTrackerClien
                             )}
                             <span>{order.status.toUpperCase()}</span>
                           </Badge>
-                        </div>
 
-                        {/* Status Description banner */}
-                        <div className="rounded-xl bg-muted/40 p-3 text-xs text-muted-foreground flex items-center gap-2">
-                          <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
-                          <span>
-                            {isCompleted
-                              ? "Order verified, inspected and fulfilled by proprietor Sujith."
-                              : "Order placed. Proprietor Sujith is currently verifying component specs and inventory."}
+                          {/* Payment tag */}
+                          <span
+                            className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
+                              isPaid
+                                ? "text-emerald-600 bg-emerald-500/10"
+                                : "text-amber-600 bg-amber-500/10"
+                            }`}
+                          >
+                            {order.payment_method === "razorpay" ? (
+                              <>
+                                <CreditCard className="w-3 h-3" /> Razorpay ({isPaid ? "Paid" : "Pending"})
+                              </>
+                            ) : (
+                              <>
+                                <Truck className="w-3 h-3" /> {isPaid ? "COD (Paid)" : "COD (Payment Pending)"}
+                              </>
+                            )}
                           </span>
                         </div>
 
-                        {/* Customer & Component count info */}
-                        <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-1">
-                          <span className="flex items-center gap-1 font-medium text-foreground">
-                            <User className="h-3.5 w-3.5 text-muted-foreground" />
+                        {/* Item previews (Thumbnails & descriptions) */}
+                        {order.order_items && order.order_items.length > 0 && (
+                          <div className="flex flex-wrap items-center gap-2 pt-1">
+                            {order.order_items.slice(0, 4).map((item, idx) => {
+                              const name = item.components?.name || "Component";
+                              return (
+                                <div
+                                  key={item.id || idx}
+                                  className="flex items-center gap-2 bg-muted/40 rounded-xl px-2.5 py-1 text-xs border"
+                                  title={name}
+                                >
+                                  {item.components?.image_url ? (
+                                    <img
+                                      src={item.components.image_url}
+                                      alt={name}
+                                      className="h-5 w-5 rounded object-cover"
+                                    />
+                                  ) : (
+                                    <Cpu className="h-3.5 w-3.5 text-primary" />
+                                  )}
+                                  <span className="font-semibold text-foreground truncate max-w-[130px]">
+                                    {name}
+                                  </span>
+                                  <span className="text-[10px] font-bold text-muted-foreground">
+                                    ×{item.quantity}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                            {order.order_items.length > 4 && (
+                              <span className="text-xs text-muted-foreground font-bold pl-1">
+                                +{order.order_items.length - 4} more
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Customer info */}
+                        <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground pt-0.5 font-medium">
+                          <span className="flex items-center gap-1 text-foreground font-bold">
+                            <User className="h-3.5 w-3.5 text-primary" />
                             {order.customer_name}
                           </span>
                           <span>•</span>
                           <span className="flex items-center gap-1 font-mono">
-                            <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-                            {order.customer_phone}
+                            <Phone className="h-3.5 w-3.5 text-emerald-500" />
+                            +91 {order.customer_phone}
                           </span>
-                          {itemCount > 0 && (
-                            <>
-                              <span>•</span>
-                              <span>
-                                {itemCount} component type{itemCount > 1 ? "s" : ""}
-                              </span>
-                            </>
-                          )}
                         </div>
                       </div>
 
-                      {/* Right: Amount & Actions */}
+                      {/* Right: Amount & Action button */}
                       <div className="flex flex-col sm:flex-row lg:flex-col sm:items-center lg:items-end justify-between gap-4 border-t lg:border-t-0 pt-4 lg:pt-0">
                         <div className="lg:text-right">
-                          <span className="text-xs text-muted-foreground block">Order Total</span>
+                          <span className="text-xs text-muted-foreground block font-bold">Order Total</span>
                           <span className="text-2xl font-black text-primary">
                             {formatPrice(order.total_amount)}
                           </span>
@@ -288,7 +341,7 @@ export function OrderTrackerClient({ session, initialOrders }: OrderTrackerClien
                             <Button
                               size="sm"
                               variant="outline"
-                              className="gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10 font-semibold"
+                              className="gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10 font-bold rounded-xl hover:-translate-y-0.5 active:translate-y-0.5 transition-all"
                             >
                               <MessageSquare className="h-3.5 w-3.5" />
                               <span className="hidden sm:inline">WhatsApp</span> Sujith
@@ -296,8 +349,11 @@ export function OrderTrackerClient({ session, initialOrders }: OrderTrackerClien
                           </a>
 
                           <Link href={`/orders/${order.id}`}>
-                            <Button size="sm" className="gap-1.5 text-xs font-bold shadow-sm">
-                              <span>Track Status</span>
+                            <Button
+                              size="sm"
+                              className="gap-1.5 text-xs font-black shadow rounded-xl hover:-translate-y-0.5 active:translate-y-0.5 transition-all cursor-pointer"
+                            >
+                              <span>View &amp; Track</span>
                               <ArrowRight className="h-3.5 w-3.5" />
                             </Button>
                           </Link>

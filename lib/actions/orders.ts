@@ -8,7 +8,15 @@ import { revalidatePath } from "next/cache";
 
 export async function createOrder(data: OrderCreationData): Promise<{ success: boolean; data?: Order; error?: string }> {
   try {
-    const { customer_name, customer_phone, items } = data;
+    const {
+      customer_name,
+      customer_phone,
+      items,
+      payment_method = "cod",
+      payment_status = "pending",
+      payment_id = "",
+      shipping_address = {},
+    } = data;
 
     if (!customer_name?.trim() || !customer_phone?.trim()) {
       return { success: false, error: "Customer name and phone number are required." };
@@ -30,7 +38,11 @@ export async function createOrder(data: OrderCreationData): Promise<{ success: b
         customer_name,
         customer_phone,
         total_amount,
-        status: "Pending",
+        status: payment_status === "paid" ? "Completed" : "Pending",
+        payment_method,
+        payment_status,
+        payment_id,
+        shipping_address,
         created_at: new Date().toISOString(),
         order_items: items.map((item, idx) => ({
           id: `item-${Date.now()}-${idx}`,
@@ -57,22 +69,68 @@ export async function createOrder(data: OrderCreationData): Promise<{ success: b
 
     const supabase = await createClient();
 
-    // 1. Insert into orders table
-    const { data: orderData, error: orderError } = await supabase
+    // 1. Insert into orders table with payment and address metadata (with schema fallback)
+    let orderData: any = null;
+
+    const initialInsert = await supabase
       .from("orders")
       .insert([
         {
           customer_name: customer_name.trim(),
           customer_phone: customer_phone.trim(),
           total_amount,
-          status: "Pending",
+          status: payment_status === "paid" ? "Completed" : "Pending",
+          payment_method,
+          payment_status,
+          payment_id,
+          shipping_address,
         },
       ])
       .select()
       .single();
 
-    if (orderError || !orderData) {
-      return { success: false, error: orderError?.message || "Failed to create order." };
+    if (initialInsert.error) {
+      // If database schema has not yet added new columns, fallback gracefully to base schema
+      if (
+        initialInsert.error.message?.includes("schema cache") ||
+        initialInsert.error.message?.includes("column")
+      ) {
+        console.warn("Retrying order creation with baseline schema:", initialInsert.error.message);
+        const fallbackInsert = await supabase
+          .from("orders")
+          .insert([
+            {
+              customer_name: customer_name.trim(),
+              customer_phone: customer_phone.trim(),
+              total_amount,
+              status: payment_status === "paid" ? "Completed" : "Pending",
+            },
+          ])
+          .select()
+          .single();
+
+        if (fallbackInsert.error || !fallbackInsert.data) {
+          return {
+            success: false,
+            error: fallbackInsert.error?.message || "Failed to create order.",
+          };
+        }
+        orderData = {
+          ...fallbackInsert.data,
+          payment_method,
+          payment_status,
+          payment_id,
+          shipping_address,
+        };
+      } else {
+        return { success: false, error: initialInsert.error.message };
+      }
+    } else {
+      orderData = initialInsert.data;
+    }
+
+    if (!orderData) {
+      return { success: false, error: "Failed to create order." };
     }
 
     // 2. Insert into order_items table
@@ -221,6 +279,138 @@ export async function updateOrderStatus(
     return { success: true };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to update order status";
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Admin action to confirm Cash on Delivery payment collection and complete the order.
+ */
+export async function confirmCodPayment(
+  orderId: string
+): Promise<{ success: boolean; error?: string }> {
+  const isAdmin = await checkAdminSession();
+  if (!isAdmin) {
+    return { success: false, error: "Unauthorized. Admin privileges required." };
+  }
+
+  try {
+    if (!isSupabaseConfigured()) {
+      const order = MOCK_ORDERS.find((o) => o.id === orderId);
+      if (order) {
+        order.status = "Completed";
+        order.payment_status = "paid";
+      }
+      revalidatePath("/admin");
+      revalidatePath("/admin/orders");
+      revalidatePath(`/admin/orders/${orderId}`);
+      revalidatePath("/orders");
+      revalidatePath(`/orders/${orderId}`);
+      return { success: true };
+    }
+
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("orders")
+      .update({
+        status: "Completed",
+        payment_status: "paid",
+      })
+      .eq("id", orderId);
+
+    if (error) {
+      if (
+        error.message?.includes("schema cache") ||
+        error.message?.includes("column")
+      ) {
+        const { error: fallbackErr } = await supabase
+          .from("orders")
+          .update({ status: "Completed" })
+          .eq("id", orderId);
+        if (fallbackErr) {
+          return { success: false, error: fallbackErr.message };
+        }
+      } else {
+        return { success: false, error: error.message };
+      }
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/orders");
+    revalidatePath(`/admin/orders/${orderId}`);
+    revalidatePath("/orders");
+    revalidatePath(`/orders/${orderId}`);
+    return { success: true };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to confirm COD payment";
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Admin action to update courier and tracking number for an order.
+ */
+export async function updateOrderTracking(
+  orderId: string,
+  courierName: string,
+  trackingNumber: string
+): Promise<{ success: boolean; error?: string }> {
+  const isAdmin = await checkAdminSession();
+  if (!isAdmin) {
+    return { success: false, error: "Unauthorized. Admin privileges required." };
+  }
+
+  try {
+    if (!isSupabaseConfigured()) {
+      const order = MOCK_ORDERS.find((o) => o.id === orderId);
+      if (order) {
+        order.courier_name = courierName;
+        order.tracking_number = trackingNumber;
+        order.status = "shipped";
+      }
+      revalidatePath("/admin");
+      revalidatePath("/admin/orders");
+      revalidatePath(`/admin/orders/${orderId}`);
+      revalidatePath("/orders");
+      revalidatePath(`/orders/${orderId}`);
+      return { success: true };
+    }
+
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("orders")
+      .update({
+        courier_name: courierName.trim(),
+        tracking_number: trackingNumber.trim(),
+        status: "shipped",
+      })
+      .eq("id", orderId);
+
+    if (error) {
+      if (
+        error.message?.includes("schema cache") ||
+        error.message?.includes("column")
+      ) {
+        const { error: fallbackErr } = await supabase
+          .from("orders")
+          .update({ status: "shipped" })
+          .eq("id", orderId);
+        if (fallbackErr) {
+          return { success: false, error: fallbackErr.message };
+        }
+      } else {
+        return { success: false, error: error.message };
+      }
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/orders");
+    revalidatePath(`/admin/orders/${orderId}`);
+    revalidatePath("/orders");
+    revalidatePath(`/orders/${orderId}`);
+    return { success: true };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to update tracking details";
     return { success: false, error: message };
   }
 }
