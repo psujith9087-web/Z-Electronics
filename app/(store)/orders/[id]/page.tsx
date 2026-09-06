@@ -63,6 +63,8 @@ export default async function OrderDetailPage({
         <OrderActionButtons
           orderId={order.id}
           waText={waText}
+          amount={Number(order.total_amount)}
+          status={order.status}
         />
       </div>
 

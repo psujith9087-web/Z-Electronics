@@ -1,13 +1,15 @@
 import { checkAdminSession } from "@/lib/actions/admin-auth";
 import { getComponents } from "@/lib/actions/components";
 import { getAllOrders } from "@/lib/actions/orders";
+import { getPaymentConfig } from "@/lib/actions/payment";
 import { formatPrice } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ComponentsClient } from "./components-client";
 import { OrdersClient } from "./orders-client";
+import { PaymentQrManager } from "./payment-qr-manager";
 import AdminLoginPage from "./login/page";
-import { Cpu, ShoppingBag, Clock, CheckCircle2, IndianRupee } from "lucide-react";
+import { Cpu, ShoppingBag, Clock, CheckCircle2, IndianRupee, QrCode } from "lucide-react";
 
 export const revalidate = 0; // Fresh inventory & orders
 
@@ -18,9 +20,10 @@ export default async function AdminDashboardPage() {
     return <AdminLoginPage />;
   }
 
-  const [components, orders] = await Promise.all([
+  const [components, orders, paymentConfig] = await Promise.all([
     getComponents(),
     getAllOrders(),
+    getPaymentConfig(),
   ]);
 
   const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
@@ -164,6 +167,14 @@ export default async function AdminDashboardPage() {
               </span>
             )}
           </TabsTrigger>
+
+          <TabsTrigger
+            value="payment"
+            className="rounded-lg h-10 px-5 text-xs sm:text-sm font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
+            <QrCode className="h-4 w-4 mr-2" />
+            Payment QR Code
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="inventory" className="outline-none focus:outline-none">
@@ -172,6 +183,10 @@ export default async function AdminDashboardPage() {
 
         <TabsContent value="orders" className="outline-none focus:outline-none">
           <OrdersClient initialOrders={orders} />
+        </TabsContent>
+
+        <TabsContent value="payment" className="outline-none focus:outline-none">
+          <PaymentQrManager initialConfig={paymentConfig} />
         </TabsContent>
       </Tabs>
     </div>

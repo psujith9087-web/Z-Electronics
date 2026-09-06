@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ComponentItem, formatPrice } from "@/lib/types";
 import { createComponent, updateComponent, deleteComponent } from "@/lib/actions/components";
+import { compressImageFile } from "@/lib/image-upload";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Plus, Search, Edit2, Trash2, Cpu, Loader2, Package } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Cpu, Loader2, Package, UploadCloud, Image as ImageIcon, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface ComponentsClientProps {
@@ -21,6 +22,12 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
   const [components, setComponents] = useState<ComponentItem[]>(initialComponents);
   const [search, setSearch] = useState("");
   const [filterStock, setFilterStock] = useState<"all" | "low" | "out">("all");
+
+  // File input refs for uploading photos from local files app
+  const addFileInputRef = useRef<HTMLInputElement>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingAddImage, setIsUploadingAddImage] = useState(false);
+  const [isUploadingEditImage, setIsUploadingEditImage] = useState(false);
 
   // Add Component Dialog state
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -68,6 +75,41 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
     if (filterStock === "out") return c.stock_quantity <= 0;
     return true;
   });
+
+  // Handle local file picking from files app
+  const handleAddFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingAddImage(true);
+    try {
+      const base64 = await compressImageFile(file);
+      setAddImageUrl(base64);
+      toast.success("Component photo loaded from files!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to process photo.";
+      toast.error(msg);
+    } finally {
+      setIsUploadingAddImage(false);
+      if (addFileInputRef.current) addFileInputRef.current.value = "";
+    }
+  };
+
+  const handleEditFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingEditImage(true);
+    try {
+      const base64 = await compressImageFile(file);
+      setEditImageUrl(base64);
+      toast.success("Component photo loaded from files!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to process photo.";
+      toast.error(msg);
+    } finally {
+      setIsUploadingEditImage(false);
+      if (editFileInputRef.current) editFileInputRef.current.value = "";
+    }
+  };
 
   // Handle Add Component
   const handleAddSubmit = async (e: React.FormEvent) => {
@@ -412,48 +454,111 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
               </div>
             </div>
 
-            <div className="space-y-1.5">
+            {/* Component Photo Upload / Selector */}
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="add-image" className="text-xs font-semibold">
-                  Component Photo URL
+                <Label className="text-xs font-semibold">
+                  Component Photo (Upload from Device / Files)
                 </Label>
-                <span className="text-[10px] text-muted-foreground">Direct link or pick below</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="add-image"
-                  type="url"
-                  placeholder="https://... image link"
-                  value={addImageUrl}
-                  onChange={(e) => setAddImageUrl(e.target.value)}
-                  className="text-xs"
-                />
                 {addImageUrl && (
-                  <div className="h-10 w-10 rounded-xl border border-border/80 overflow-hidden shrink-0 bg-muted/40 shadow-inner">
+                  <button
+                    type="button"
+                    onClick={() => setAddImageUrl("")}
+                    className="text-[10px] text-destructive hover:underline font-semibold flex items-center gap-1"
+                  >
+                    <X className="h-3 w-3" /> Remove Photo
+                  </button>
+                )}
+              </div>
+
+              {/* Hidden File Input */}
+              <input
+                ref={addFileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAddFileChange}
+              />
+
+              {/* Photo Preview or File Picker Target */}
+              {addImageUrl ? (
+                <div className="relative rounded-2xl border-2 border-primary/30 bg-muted/20 p-2.5 overflow-hidden flex items-center gap-3">
+                  <div className="relative h-20 w-20 rounded-xl overflow-hidden border bg-background shrink-0 shadow-sm">
                     <img
                       src={addImageUrl}
-                      alt="Preview"
+                      alt="Component Preview"
                       className="h-full w-full object-cover"
                       onError={(e) => {
                         (e.currentTarget as HTMLElement).style.display = "none";
                       }}
                     />
                   </div>
-                )}
-              </div>
-              {/* Quick Presets */}
-              <div className="flex flex-wrap items-center gap-1 pt-1">
-                <span className="text-[10px] text-muted-foreground mr-1">Presets:</span>
-                {PRESET_IMAGES.map((p) => (
-                  <button
-                    key={p.label}
-                    type="button"
-                    onClick={() => setAddImageUrl(p.url)}
-                    className="text-[10px] px-2 py-0.5 rounded-full bg-muted/70 hover:bg-muted text-foreground font-medium transition-colors border border-border/60"
-                  >
-                    {p.label}
-                  </button>
-                ))}
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <p className="text-xs font-bold text-foreground truncate">Photo Selected</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Will be visualised in the customer portal catalog.
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addFileInputRef.current?.click()}
+                      disabled={isUploadingAddImage}
+                      className="h-7 text-[11px] gap-1 px-2.5 rounded-lg"
+                    >
+                      <UploadCloud className="h-3 w-3" />
+                      {isUploadingAddImage ? "Processing..." : "Change Photo"}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  onClick={() => addFileInputRef.current?.click()}
+                  className="rounded-2xl border-2 border-dashed border-border hover:border-primary/60 bg-muted/20 hover:bg-muted/40 p-5 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 group"
+                >
+                  <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+                    {isUploadingAddImage ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <UploadCloud className="h-5 w-5" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">
+                      Click to choose photo from your Files App / Device
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      JPG, PNG, WebP supported • Automatically optimized
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Or Direct URL / Presets */}
+              <div className="pt-1 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="add-image"
+                    type="url"
+                    placeholder="Or paste an image web link (optional)..."
+                    value={addImageUrl.startsWith("data:") ? "" : addImageUrl}
+                    onChange={(e) => setAddImageUrl(e.target.value)}
+                    className="text-xs h-8"
+                  />
+                </div>
+                <div className="flex flex-wrap items-center gap-1">
+                  <span className="text-[10px] text-muted-foreground mr-1">Quick Presets:</span>
+                  {PRESET_IMAGES.map((p) => (
+                    <button
+                      key={p.label}
+                      type="button"
+                      onClick={() => setAddImageUrl(p.url)}
+                      className="text-[10px] px-2 py-0.5 rounded-full bg-muted/70 hover:bg-muted text-foreground font-medium transition-colors border border-border/60"
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -547,48 +652,108 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
               </div>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="edit-image" className="text-xs font-semibold">
-                  Component Photo URL
-                </Label>
-                <span className="text-[10px] text-muted-foreground">Direct link or pick below</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="edit-image"
-                  type="url"
-                  placeholder="https://... image link"
-                  value={editImageUrl}
-                  onChange={(e) => setEditImageUrl(e.target.value)}
-                  className="text-xs"
-                />
+                <Label className="text-xs font-semibold">Component Photo</Label>
                 {editImageUrl && (
-                  <div className="h-10 w-10 rounded-xl border border-border/80 overflow-hidden shrink-0 bg-muted/40 shadow-inner">
+                  <button
+                    type="button"
+                    onClick={() => setEditImageUrl("")}
+                    className="text-[10px] text-destructive hover:underline font-semibold flex items-center gap-1"
+                  >
+                    <X className="h-3 w-3" /> Remove Photo
+                  </button>
+                )}
+              </div>
+
+              {/* Hidden File Input */}
+              <input
+                ref={editFileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleEditFileChange}
+              />
+
+              {/* Photo Preview or File Picker Target */}
+              {editImageUrl ? (
+                <div className="relative rounded-2xl border-2 border-primary/30 bg-muted/20 p-2.5 overflow-hidden flex items-center gap-3">
+                  <div className="relative h-20 w-20 rounded-xl overflow-hidden border bg-background shrink-0 shadow-sm">
                     <img
                       src={editImageUrl}
-                      alt="Preview"
+                      alt="Component Preview"
                       className="h-full w-full object-cover"
                       onError={(e) => {
                         (e.currentTarget as HTMLElement).style.display = "none";
                       }}
                     />
                   </div>
-                )}
-              </div>
-              {/* Quick Presets */}
-              <div className="flex flex-wrap items-center gap-1 pt-1">
-                <span className="text-[10px] text-muted-foreground mr-1">Presets:</span>
-                {PRESET_IMAGES.map((p) => (
-                  <button
-                    key={p.label}
-                    type="button"
-                    onClick={() => setEditImageUrl(p.url)}
-                    className="text-[10px] px-2 py-0.5 rounded-full bg-muted/70 hover:bg-muted text-foreground font-medium transition-colors border border-border/60"
-                  >
-                    {p.label}
-                  </button>
-                ))}
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <p className="text-xs font-bold text-foreground truncate">Photo Selected</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Will be visualised in the customer portal catalog.
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => editFileInputRef.current?.click()}
+                      disabled={isUploadingEditImage}
+                      className="h-7 text-[11px] gap-1 px-2.5 rounded-lg"
+                    >
+                      <UploadCloud className="h-3 w-3" />
+                      {isUploadingEditImage ? "Processing..." : "Change Photo"}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  onClick={() => editFileInputRef.current?.click()}
+                  className="rounded-2xl border-2 border-dashed border-border hover:border-primary/60 bg-muted/20 hover:bg-muted/40 p-5 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 group"
+                >
+                  <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+                    {isUploadingEditImage ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <UploadCloud className="h-5 w-5" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">
+                      Click to choose photo from your Files App / Device
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      JPG, PNG, WebP supported • Automatically optimized
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Or Direct URL / Presets */}
+              <div className="pt-1 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="edit-image"
+                    type="url"
+                    placeholder="Or paste an image web link (optional)..."
+                    value={editImageUrl.startsWith("data:") ? "" : editImageUrl}
+                    onChange={(e) => setEditImageUrl(e.target.value)}
+                    className="text-xs h-8"
+                  />
+                </div>
+                <div className="flex flex-wrap items-center gap-1">
+                  <span className="text-[10px] text-muted-foreground mr-1">Quick Presets:</span>
+                  {PRESET_IMAGES.map((p) => (
+                    <button
+                      key={p.label}
+                      type="button"
+                      onClick={() => setEditImageUrl(p.url)}
+                      className="text-[10px] px-2 py-0.5 rounded-full bg-muted/70 hover:bg-muted text-foreground font-medium transition-colors border border-border/60"
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 

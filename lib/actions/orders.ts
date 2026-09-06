@@ -314,3 +314,90 @@ export async function getOrderStats() {
     pending_orders,
   };
 }
+
+export async function deleteOrder(orderId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!isSupabaseConfigured()) {
+      const idx = MOCK_ORDERS.findIndex((o) => o.id === orderId);
+      if (idx !== -1) {
+        MOCK_ORDERS.splice(idx, 1);
+      }
+      revalidatePath("/admin");
+      revalidatePath("/orders");
+      return { success: true };
+    }
+
+    const supabase = await createClient();
+
+    // 1. Delete associated order items first to satisfy foreign key
+    const { error: itemsError } = await supabase
+      .from("order_items")
+      .delete()
+      .eq("order_id", orderId);
+
+    if (itemsError) {
+      console.warn("Notice while deleting order items:", itemsError);
+    }
+
+    // 2. Delete the order
+    const { error: orderError } = await supabase
+      .from("orders")
+      .delete()
+      .eq("id", orderId);
+
+    if (orderError) {
+      return { success: false, error: orderError.message };
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/orders");
+    revalidatePath("/");
+    return { success: true };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Failed to delete order.";
+    return { success: false, error: msg };
+  }
+}
+
+export async function resetAllOrders(): Promise<{ success: boolean; error?: string; count?: number }> {
+  try {
+    if (!isSupabaseConfigured()) {
+      const count = MOCK_ORDERS.length;
+      MOCK_ORDERS.length = 0;
+      revalidatePath("/admin");
+      revalidatePath("/orders");
+      return { success: true, count };
+    }
+
+    const supabase = await createClient();
+
+    // 1. Delete all order items first
+    const { error: itemsError } = await supabase
+      .from("order_items")
+      .delete()
+      .neq("id", "00000000-0000-0000-0000-000000000000");
+
+    if (itemsError) {
+      console.warn("Notice while clearing order items:", itemsError);
+    }
+
+    // 2. Delete all orders
+    const { error: ordersError } = await supabase
+      .from("orders")
+      .delete()
+      .neq("id", "00000000-0000-0000-0000-000000000000");
+
+    if (ordersError) {
+      return { success: false, error: ordersError.message };
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/orders");
+    revalidatePath("/");
+    return { success: true };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Failed to reset orders.";
+    return { success: false, error: msg };
+  }
+}
+

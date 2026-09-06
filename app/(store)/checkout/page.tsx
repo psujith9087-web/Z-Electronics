@@ -7,6 +7,8 @@ import { useCartStore } from "@/lib/store/cart-store";
 import { formatPrice, Order } from "@/lib/types";
 import { createOrder } from "@/lib/actions/orders";
 import { getCustomerSession } from "@/lib/actions/auth";
+import { PaymentConfig, getPaymentConfig } from "@/lib/actions/payment";
+import { PaymentQrModal } from "@/components/checkout/payment-qr-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +28,7 @@ import {
   FileText,
   ShieldCheck,
   ShoppingBag,
+  QrCode,
 } from "lucide-react";
 
 // Hydration-safe helper
@@ -49,12 +52,24 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
 
+  // Payment QR State
+  const [paymentConfig, setPaymentConfig] = useState<PaymentConfig>({
+    upiId: "8072726924@upi",
+    payeeName: "Z-Electronics (Prop. Sujith)",
+    qrImageUrl: "",
+    phone: "8072726924",
+  });
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+
   useEffect(() => {
     getCustomerSession().then((sess) => {
       if (sess) {
         if (sess.name) setCustomerName((prev) => prev || sess.name);
         if (sess.phone) setCustomerPhone((prev) => prev || sess.phone);
       }
+    });
+    getPaymentConfig().then((cfg) => {
+      if (cfg) setPaymentConfig(cfg);
     });
   }, []);
 
@@ -334,6 +349,15 @@ export default function CheckoutPage() {
         {/* Post-order buttons (hidden in print) */}
         <div className="print:hidden mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button
+            type="button"
+            onClick={() => setIsQrModalOpen(true)}
+            className="w-full sm:w-auto h-11 px-6 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-md"
+          >
+            <QrCode className="h-4 w-4" />
+            Pay via UPI QR Code ({formatPrice(confirmedOrder.total_amount)})
+          </Button>
+
+          <Button
             onClick={() => {
               setConfirmedOrder(null);
               router.push("/");
@@ -356,6 +380,15 @@ export default function CheckoutPage() {
             </Button>
           </a>
         </div>
+
+        {/* Payment QR Modal on Invoice Screen */}
+        <PaymentQrModal
+          isOpen={isQrModalOpen}
+          onClose={() => setIsQrModalOpen(false)}
+          amount={Number(confirmedOrder.total_amount)}
+          config={paymentConfig}
+          orderId={confirmedOrder.id}
+        />
       </div>
     );
   }
@@ -488,6 +521,38 @@ export default function CheckoutPage() {
                   />
                 </div>
 
+                {/* UPI Payment Option Box */}
+                <div className="rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-card to-background p-4 sm:p-5 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <QrCode className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-foreground">UPI Payment & QR Code</h4>
+                        <p className="text-[11px] text-muted-foreground">Google Pay • PhonePe • Paytm • BHIM</p>
+                      </div>
+                    </div>
+                    <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30 text-[10px] font-bold">
+                      Zero Fees
+                    </Badge>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    You can scan proprietor Sujith's official UPI QR code now to pay for your components, or pay after invoice generation.
+                  </p>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsQrModalOpen(true)}
+                    className="w-full h-10 text-xs font-bold gap-2 border-primary/40 text-primary hover:bg-primary/10 rounded-xl"
+                  >
+                    <QrCode className="h-4 w-4" />
+                    View Payment QR Code ({formatPrice(cartSubtotal)})
+                  </Button>
+                </div>
+
                 <div className="rounded-xl border bg-muted/30 p-4 space-y-2 text-xs text-muted-foreground">
                   <div className="flex items-center gap-2 font-semibold text-foreground">
                     <ShieldCheck className="h-4 w-4 text-emerald-500" />
@@ -587,6 +652,14 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+
+      {/* Payment QR Modal for Checkout */}
+      <PaymentQrModal
+        isOpen={isQrModalOpen}
+        onClose={() => setIsQrModalOpen(false)}
+        amount={cartSubtotal}
+        config={paymentConfig}
+      />
     </div>
   );
 }

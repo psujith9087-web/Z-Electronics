@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { Order, OrderStatus, formatPrice } from "@/lib/types";
-import { updateOrderStatus } from "@/lib/actions/orders";
+import { updateOrderStatus, deleteOrder, resetAllOrders } from "@/lib/actions/orders";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Search, Phone, MessageSquare, Eye, CheckCircle2, Clock, Package, Loader2, ExternalLink } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Search, Phone, MessageSquare, Eye, CheckCircle2, Clock, Package, Loader2, ExternalLink, RotateCcw, Trash2, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -25,6 +25,15 @@ export function OrdersClient({ initialOrders }: OrdersClientProps) {
   // View items modal
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  // Reset All Orders Dialog state
+  const [isResetOpen, setIsResetOpen] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+
+  // Delete Single Order Dialog state
+  const [isSingleDeleteOpen, setIsSingleDeleteOpen] = useState(false);
+  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
+  const [isDeletingSingle, setIsDeletingSingle] = useState(false);
 
   // Filter orders
   const filteredOrders = orders.filter((o) => {
@@ -60,6 +69,44 @@ export function OrdersClient({ initialOrders }: OrdersClientProps) {
     }
   };
 
+  const handleResetAllOrders = async () => {
+    setIsResetting(true);
+    try {
+      const res = await resetAllOrders();
+      if (res.success) {
+        setOrders([]);
+        setIsResetOpen(false);
+        toast.success("All previous orders have been cleared. You are ready to start fresh!");
+      } else {
+        toast.error(res.error || "Failed to reset orders.");
+      }
+    } catch {
+      toast.error("Error resetting orders.");
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const handleDeleteSingleOrder = async () => {
+    if (!deletingOrderId) return;
+    setIsDeletingSingle(true);
+    try {
+      const res = await deleteOrder(deletingOrderId);
+      if (res.success) {
+        setOrders((prev) => prev.filter((o) => o.id !== deletingOrderId));
+        setIsSingleDeleteOpen(false);
+        setDeletingOrderId(null);
+        toast.success("Order removed from system.");
+      } else {
+        toast.error(res.error || "Failed to delete order.");
+      }
+    } catch {
+      toast.error("Error deleting order.");
+    } finally {
+      setIsDeletingSingle(false);
+    }
+  };
+
   const handleViewOrder = (order: Order) => {
     setSelectedOrder(order);
     setIsDetailsOpen(true);
@@ -78,8 +125,8 @@ export function OrdersClient({ initialOrders }: OrdersClientProps) {
           </p>
         </div>
 
-        {/* Quick status filter buttons */}
-        <div className="flex items-center gap-2">
+        {/* Quick status filter buttons & Reset Button */}
+        <div className="flex flex-wrap items-center gap-2">
           {(["All", "Pending", "Completed"] as const).map((st) => {
             const count = st === "All" ? orders.length : orders.filter((o) => o.status === st).length;
             return (
@@ -94,6 +141,17 @@ export function OrdersClient({ initialOrders }: OrdersClientProps) {
               </Button>
             );
           })}
+
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setIsResetOpen(true)}
+            className="text-xs h-8 px-3 rounded-lg gap-1.5 font-bold shadow-sm bg-red-600 hover:bg-red-700 text-white"
+            title="Clear all previous orders and start fresh"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            Reset All Orders
+          </Button>
         </div>
       </div>
 
@@ -239,6 +297,18 @@ export function OrdersClient({ initialOrders }: OrdersClientProps) {
                         <Eye className="h-3.5 w-3.5" />
                         Items
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setDeletingOrderId(order.id);
+                          setIsSingleDeleteOpen(true);
+                        }}
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        title="Delete order"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -314,6 +384,101 @@ export function OrdersClient({ initialOrders }: OrdersClientProps) {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* -- RESET ALL ORDERS CONFIRMATION DIALOG ------------------------ */}
+      <Dialog open={isResetOpen} onOpenChange={setIsResetOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3 text-destructive mb-1">
+              <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+              </div>
+              <DialogTitle className="text-lg">Reset All Orders & Start Fresh?</DialogTitle>
+            </div>
+            <DialogDescription className="text-xs leading-relaxed pt-2">
+              This action will permanently delete <strong>all previous and test orders</strong> and their line items from the database. 
+              <br /><br />
+              Use this option when you want a completely clean slate for new incoming customer orders. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="pt-4 flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsResetOpen(false)}
+              disabled={isResetting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              onClick={handleResetAllOrders}
+              disabled={isResetting}
+              className="gap-1.5 font-semibold bg-red-600 hover:bg-red-700"
+            >
+              {isResetting ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Resetting Database...
+                </>
+              ) : (
+                <>
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  Yes, Reset & Delete All Orders
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* -- SINGLE ORDER DELETION DIALOG ---------------------------------- */}
+      <Dialog open={isSingleDeleteOpen} onOpenChange={setIsSingleDeleteOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete Order?</DialogTitle>
+            <DialogDescription className="text-xs">
+              Are you sure you want to delete order #{deletingOrderId?.slice(0, 10).toUpperCase()}? This will remove this order permanently.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="pt-4 flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsSingleDeleteOpen(false)}
+              disabled={isDeletingSingle}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              onClick={handleDeleteSingleOrder}
+              disabled={isDeletingSingle}
+              className="gap-1.5 font-semibold bg-red-600 hover:bg-red-700"
+            >
+              {isDeletingSingle ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Delete Order
+                </>
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
