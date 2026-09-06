@@ -78,7 +78,7 @@ export default function HeroSection() {
           <span className="flex h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee] animate-pulse" />
           <span className="text-zinc-200 font-semibold">Z-Electronics</span>
           <span className="text-zinc-600">•</span>
-          <span>Silicon & Prototyping Hardware</span>
+          <span>Enterprise & Maker Hardware Supply</span>
         </div>
 
         {/* Center-aligned Main Headline with White-to-Light-Gray Gradient */}
@@ -91,53 +91,53 @@ export default function HeroSection() {
 
         {/* Constrained Sub-headline for Optimal Readability */}
         <p className="mt-6 text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal text-center">
-          Welcome to <strong className="text-white font-medium">Z-Electronics</strong>. High-reliability microcontrollers, precision sensors, ICs, and prototyping hardware with instant invoice generation.
+          Certified distribution of high-grade microcontrollers, precision sensors, power ICs, and prototyping hardware with automated bill generation and guaranteed same-day dispatch.
         </p>
 
-        {/* Action Area: Buttons */}
+        {/* Action Area: Buttons with Pro Top-Tier Copy & Super Active Tactile Press Physics */}
         <div className="mt-9 sm:mt-10 flex flex-wrap items-center justify-center gap-4">
-          {/* Primary Button: Solid White with Dark Text & Subtle Hover Glow */}
+          {/* Primary Button: Shimmer Highlight & Tactile Spring Rebound */}
           <a
             href="#catalog"
-            className="group inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-semibold text-zinc-950 shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all duration-300 hover:bg-zinc-100 hover:shadow-[0_0_32px_rgba(255,255,255,0.45)] hover:scale-[1.03] active:scale-95 cursor-pointer"
+            className="group relative inline-flex items-center justify-center gap-2.5 rounded-full bg-white px-8 py-4 text-sm font-bold text-zinc-950 shadow-[0_0_24px_rgba(255,255,255,0.22)] transition-all duration-150 ease-out hover:bg-zinc-100 hover:shadow-[0_0_36px_rgba(255,255,255,0.45)] hover:-translate-y-0.5 active:translate-y-1 active:scale-[0.94] active:shadow-inner cursor-pointer"
           >
-            <span>Explore Catalog</span>
-            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+            <span>Explore Component Store</span>
+            <ArrowRight className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-1" />
           </a>
 
-          {/* Secondary Button: Dark Glassmorphic with WhatsApp Icon */}
+          {/* Secondary Button: Dark Glassmorphic with Pro WhatsApp Engineering Desk */}
           <a
             href="https://wa.me/918072726924?text=Hi%20Sujith,%20I'd%20like%20to%20inquire%20about%20Z-Electronics%20components%20and%20hardware."
             target="_blank"
             rel="noopener noreferrer"
-            className="group inline-flex items-center justify-center gap-2.5 rounded-full border border-zinc-800 bg-zinc-900/60 px-6 py-3.5 text-sm font-medium text-zinc-200 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-zinc-700 hover:bg-zinc-800/80 hover:text-white hover:shadow-[0_0_25px_rgba(37,211,102,0.2)] hover:scale-[1.03] active:scale-95 cursor-pointer"
+            className="group inline-flex items-center justify-center gap-2.5 rounded-full border border-zinc-800 bg-zinc-900/70 px-7 py-4 text-sm font-semibold text-zinc-200 shadow-sm backdrop-blur-xl transition-all duration-150 ease-out hover:border-zinc-700 hover:bg-zinc-800/80 hover:text-white hover:shadow-[0_0_25px_rgba(37,211,102,0.25)] hover:-translate-y-0.5 active:translate-y-1 active:scale-[0.94] cursor-pointer"
           >
             {/* Minimal WhatsApp Icon */}
             <svg
-              className="h-4 w-4 text-[#25D366] fill-current transition-transform duration-200 group-hover:scale-110"
+              className="h-4 w-4 text-[#25D366] fill-current transition-transform duration-150 group-hover:scale-110"
               viewBox="0 0 24 24"
             >
               <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.698.073-1.134-.067-.324-.105-.733-.243-1.288-.485-2.348-1.026-3.864-3.414-3.98-3.571-.116-.157-.951-1.265-.951-2.413 0-1.148.601-1.713.815-1.947.214-.234.469-.293.626-.293.157 0 .313.003.45.01.144.007.337-.054.527.401.196.47.669 1.636.728 1.753.059.117.099.255.02.411-.079.156-.118.254-.235.391-.118.137-.248.307-.354.412-.118.117-.241.245-.104.48.137.235.61 1.006 1.309 1.628.9.801 1.66 1.049 1.896 1.166.236.117.373.104.51-.053.138-.157.589-.686.746-.921.157-.235.314-.196.53-.117.216.078 1.373.647 1.609.765.236.118.393.176.452.274.059.098.059.568-.085.973z" />
             </svg>
-            <span>Live Support</span>
+            <span>Consult with Engineer</span>
           </a>
         </div>
 
         {/* -- Bottom Trust Banner: 3 Minimal Faded Badges ---------------- */}
-        <div className="mt-14 sm:mt-16 pt-8 border-t border-zinc-900/80 max-w-2xl mx-auto flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-medium text-zinc-500">
-          <div className="inline-flex items-center gap-2 transition-colors duration-200 hover:text-zinc-300">
-            <FileText className="h-3.5 w-3.5 text-zinc-400" />
-            <span>Instant Invoice Generation</span>
+        <div className="mt-14 sm:mt-16 pt-8 border-t border-zinc-900/80 max-w-2xl mx-auto flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-semibold text-zinc-400">
+          <div className="inline-flex items-center gap-2 transition-colors duration-200 hover:text-zinc-200">
+            <FileText className="h-3.5 w-3.5 text-amber-500" />
+            <span>Automated GST Invoicing</span>
           </div>
           <span className="hidden sm:inline text-zinc-700">•</span>
-          <div className="inline-flex items-center gap-2 transition-colors duration-200 hover:text-zinc-300">
-            <Truck className="h-3.5 w-3.5 text-zinc-400" />
-            <span>Campus Delivery</span>
+          <div className="inline-flex items-center gap-2 transition-colors duration-200 hover:text-zinc-200">
+            <Truck className="h-3.5 w-3.5 text-emerald-500" />
+            <span>Express Campus Delivery</span>
           </div>
           <span className="hidden sm:inline text-zinc-700">•</span>
-          <div className="inline-flex items-center gap-2 transition-colors duration-200 hover:text-zinc-300">
-            <Cpu className="h-3.5 w-3.5 text-zinc-400" />
-            <span>Direct Silicon Supply</span>
+          <div className="inline-flex items-center gap-2 transition-colors duration-200 hover:text-zinc-200">
+            <Cpu className="h-3.5 w-3.5 text-cyan-500" />
+            <span>100% Genuine Silicon</span>
           </div>
         </div>
       </div>

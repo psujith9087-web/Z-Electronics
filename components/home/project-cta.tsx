@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 export default function ProjectCTA() {
   return (
-    <section className="py-20 bg-muted/20 border-t border-border/60 relative overflow-hidden">
+    <section id="custom-bom" className="py-20 bg-muted/20 border-t border-border/60 relative overflow-hidden">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-zinc-900 to-black p-8 sm:p-14 text-white shadow-2xl relative overflow-hidden border border-white/10">
           {/* Subtle Ambient Glow Lights */}
@@ -12,7 +12,7 @@ export default function ProjectCTA() {
 
           <div className="relative z-10 max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3.5 py-1 text-xs font-semibold backdrop-blur-md mb-5 text-white/90 shadow-sm">
-              <Sparkles className="h-3.5 w-3.5 text-blue-400" />
+              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
               <span>Custom Hardware & BOM Sourcing</span>
             </div>
 
@@ -21,7 +21,7 @@ export default function ProjectCTA() {
             </h2>
 
             <p className="mt-4 text-zinc-300 text-sm sm:text-base leading-relaxed font-normal">
-              We assist students, hobbyists, and lab engineers in procuring specialized ICs, sensors, modules, and microcontrollers at wholesale prices. Connect directly with owner <strong className="text-white font-semibold">Sujith</strong> for Bill of Materials (BOM) quotations.
+              We assist students, researchers, and lab engineers in procuring specialized ICs, sensors, modules, and microcontrollers at direct wholesale prices. Connect directly for immediate Bill of Materials (BOM) quotations and component matching.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3.5">
@@ -30,9 +30,9 @@ export default function ProjectCTA() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Button size="lg" className="h-12 px-7 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs gap-2 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-emerald-950/50">
+                <Button size="lg" className="h-12 px-7 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs gap-2 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-1 active:scale-95 shadow-lg shadow-emerald-950/50">
                   <MessageSquare className="h-4 w-4" />
-                  <span>WhatsApp Sujith</span>
+                  <span>Request BOM Quotation</span>
                 </Button>
               </a>
 
@@ -40,10 +40,10 @@ export default function ProjectCTA() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="h-12 px-6 rounded-full bg-white/5 border-white/20 text-white hover:bg-white/15 font-semibold text-xs gap-2 transition-all hover:scale-105 active:scale-95 backdrop-blur-sm"
+                  className="h-12 px-6 rounded-full bg-white/5 border-white/20 text-white hover:bg-white/15 font-bold text-xs gap-2 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-1 active:scale-95 backdrop-blur-sm"
                 >
-                  <Phone className="h-4 w-4 text-blue-400" />
-                  <span>Call +91 8072726924</span>
+                  <Phone className="h-4 w-4 text-cyan-400" />
+                  <span>Call Engineering Desk (+91 8072726924)</span>
                 </Button>
               </a>
             </div>

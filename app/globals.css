@@ -301,14 +301,59 @@
   animation: drift-particle-reverse 11s ease-in-out infinite;
 }
 
-/* Tactile Button Springs & Micro-interactions */
-button:not(:disabled), [role="button"]:not(:disabled) {
+/* Professional Tactile Button Physics & Micro-interactions (Apple/Linear standard) */
+button:not(:disabled),
+[role="button"]:not(:disabled),
+.btn-tactile {
   cursor: pointer;
-  transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease;
+  position: relative;
+  transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.16s ease, filter 0.12s ease;
+  will-change: transform;
 }
 
-button:active:not(:disabled), [role="button"]:active:not(:disabled) {
-  transform: translateY(1.5px) scale(0.965);
+button:not(:disabled):hover,
+[role="button"]:not(:disabled):hover,
+.btn-tactile:hover {
+  transform: translateY(-1.5px);
+}
+
+button:not(:disabled):active,
+[role="button"]:not(:disabled):active,
+.btn-tactile:active {
+  transform: translateY(2px) scale(0.95) !important;
+  filter: brightness(0.93) !important;
+  transition-duration: 0.05s !important;
+}
+
+/* Shimmer Highlight for Primary Buttons */
+@keyframes button-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.18),
+    transparent
+  );
+  animation: button-shimmer 3.5s infinite;
 }
 
 @keyframes draw-svg-check {
