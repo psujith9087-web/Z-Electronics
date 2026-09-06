@@ -37,9 +37,9 @@ export function CustomerAccountBtn() {
         <Button
           variant="ghost"
           size="sm"
-          className="h-9 gap-1.5 px-3 rounded-full text-xs font-semibold text-muted-foreground hover:text-foreground"
+          className="h-10 gap-2 px-3.5 rounded-full text-sm font-bold text-muted-foreground hover:text-foreground"
         >
-          <User className="h-3.5 w-3.5" />
+          <User className="h-4 w-4" />
           <span className="hidden sm:inline">Sign In</span>
         </Button>
       </Link>
@@ -52,9 +52,9 @@ export function CustomerAccountBtn() {
         <Button
           variant="outline"
           size="sm"
-          className="h-9 gap-1.5 px-3 rounded-full border-border/80 text-xs font-semibold hover:border-primary/50"
+          className="h-10 gap-2 px-4 rounded-full border-border/80 text-sm font-bold hover:border-primary/50"
         >
-          <LogIn className="h-3.5 w-3.5 text-primary" />
+          <LogIn className="h-4 w-4 text-primary" />
           <span>Sign In</span>
         </Button>
       </Link>
@@ -70,13 +70,13 @@ export function CustomerAccountBtn() {
           <Button
             variant="outline"
             size="sm"
-            className="h-9 gap-1.5 px-3 rounded-full border-primary/30 bg-primary/5 hover:bg-primary/10 text-xs font-semibold text-foreground transition-all"
+            className="h-10 gap-2 px-3.5 rounded-full border-primary/30 bg-primary/5 hover:bg-primary/10 text-sm font-bold text-foreground transition-all"
           >
-            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-black">
               {displayName.charAt(0).toUpperCase()}
             </div>
-            <span className="max-w-[80px] truncate">{displayName}</span>
-            <ChevronDown className="h-3 w-3 opacity-60" />
+            <span className="max-w-[100px] truncate">{displayName}</span>
+            <ChevronDown className="h-3.5 w-3.5 opacity-60" />
           </Button>
         }
       />
