@@ -36,6 +36,20 @@ function saveLocalImageMap(id: string, imageUrl: string) {
   }
 }
 
+function deleteLocalImageMap(id: string) {
+  try {
+    const map = getLocalImageMap();
+    delete map[id];
+    const publicDir = path.join(process.cwd(), "public");
+    if (!fs.existsSync(publicDir)) {
+      fs.mkdirSync(publicDir, { recursive: true });
+    }
+    fs.writeFileSync(COMPONENT_IMAGES_FILE, JSON.stringify(map, null, 2), "utf8");
+  } catch (e) {
+    console.error("Error deleting component image from local map:", e);
+  }
+}
+
 function encodeDescriptionWithImage(description: string, imageUrl?: string): string {
   const clean = description.replace(/__IMG__[\s\S]*?__IMG__/g, "").trim();
   if (!imageUrl || !imageUrl.trim()) return clean;
@@ -68,15 +82,20 @@ export async function getComponents(): Promise<ComponentItem[]> {
 
     const localMap = getLocalImageMap();
 
-    return data.map((item: any) => {
-      const decoded = decodeDescriptionAndImage(item.description);
-      const imageUrl = item.image_url || decoded.imageUrl || localMap[item.id] || "";
-      return {
-        ...item,
-        description: decoded.description,
-        image_url: imageUrl,
-      };
-    }) as ComponentItem[];
+    return data
+      .filter((item: any) => {
+        const desc = item.description || "";
+        return !desc.includes("__DELETED__");
+      })
+      .map((item: any) => {
+        const decoded = decodeDescriptionAndImage(item.description);
+        const imageUrl = item.image_url || decoded.imageUrl || localMap[item.id] || "";
+        return {
+          ...item,
+          description: decoded.description,
+          image_url: imageUrl,
+        };
+      }) as ComponentItem[];
   } catch (error) {
     console.error("Error fetching components:", error);
     return MOCK_COMPONENTS;
@@ -262,15 +281,43 @@ export async function deleteComponent(id: string): Promise<{ success: boolean; e
     }
 
     const supabase = await createClient();
-    const { error } = await supabase.from("components").delete().eq("id", id);
 
-    if (error) {
-      return { success: false, error: error.message };
+    // 1. First attempt a standard direct delete
+    const { error: directError } = await supabase.from("components").delete().eq("id", id);
+
+    if (!directError) {
+      deleteLocalImageMap(id);
+      revalidatePath("/");
+      revalidatePath("/admin");
+      return { success: true };
     }
 
-    revalidatePath("/");
-    revalidatePath("/admin");
-    return { success: true };
+    // 2. If it violates foreign key constraint (code 23503 because component is referenced in past customer orders)
+    if (
+      directError.code === "23503" ||
+      directError.message.includes("violates foreign key constraint") ||
+      directError.message.includes("order_items")
+    ) {
+      // Safely archive/soft-delete it by marking it as __DELETED__
+      const { error: archiveError } = await supabase
+        .from("components")
+        .update({
+          description: "__DELETED__",
+          stock_quantity: 0,
+        })
+        .eq("id", id);
+
+      if (archiveError) {
+        return { success: false, error: archiveError.message };
+      }
+
+      deleteLocalImageMap(id);
+      revalidatePath("/");
+      revalidatePath("/admin");
+      return { success: true };
+    }
+
+    return { success: false, error: directError.message };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to delete component";
     return { success: false, error: message };
