@@ -11,6 +11,7 @@ import {
   Phone,
   Layers,
   Package,
+  Trophy,
 } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart-store";
 import { Button } from "@/components/ui/button";
@@ -111,6 +112,13 @@ export function Navbar() {
           >
             <Layers className="h-3.5 w-3.5 text-primary" />
             Catalog
+          </Link>
+          <Link
+            href="/legacy"
+            className="flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-foreground/80 hover:text-foreground hover:bg-foreground/5 transition-all"
+          >
+            <Trophy className="h-3.5 w-3.5 text-amber-500" />
+            Legacy & Projects
           </Link>
           <Link
             href="/orders"

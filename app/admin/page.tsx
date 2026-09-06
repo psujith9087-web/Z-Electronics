@@ -2,14 +2,16 @@ import { checkAdminSession } from "@/lib/actions/admin-auth";
 import { getComponents } from "@/lib/actions/components";
 import { getAllOrders } from "@/lib/actions/orders";
 import { getPaymentConfig } from "@/lib/actions/payment";
+import { getProjects } from "@/lib/actions/projects";
 import { formatPrice } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ComponentsClient } from "./components-client";
 import { OrdersClient } from "./orders-client";
 import { PaymentQrManager } from "./payment-qr-manager";
+import { ProjectsManager } from "./projects-manager";
 import AdminLoginPage from "./login/page";
-import { Cpu, ShoppingBag, Clock, CheckCircle2, IndianRupee, QrCode } from "lucide-react";
+import { Cpu, ShoppingBag, Clock, CheckCircle2, IndianRupee, QrCode, Trophy } from "lucide-react";
 
 export const revalidate = 0; // Fresh inventory & orders
 
@@ -20,10 +22,11 @@ export default async function AdminDashboardPage() {
     return <AdminLoginPage />;
   }
 
-  const [components, orders, paymentConfig] = await Promise.all([
+  const [components, orders, paymentConfig, projects] = await Promise.all([
     getComponents(),
     getAllOrders(),
     getPaymentConfig(),
+    getProjects(),
   ]);
 
   const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
@@ -41,7 +44,7 @@ export default async function AdminDashboardPage() {
           Monitor your electronics inventory, incoming orders, and fulfillment workflow.
         </p>
 
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mt-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mt-6">
           {/* Total Components */}
           <Card className="rounded-2xl border bg-card shadow-sm">
             <CardContent className="p-4 sm:p-5 flex flex-col justify-between">
@@ -122,6 +125,26 @@ export default async function AdminDashboardPage() {
             </CardContent>
           </Card>
 
+          {/* Legacy & Projects */}
+          <Card className="rounded-2xl border bg-card shadow-sm">
+            <CardContent className="p-4 sm:p-5 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-muted-foreground">Legacy Projects</span>
+                <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                  <Trophy className="h-4 w-4" />
+                </div>
+              </div>
+              <div className="mt-3">
+                <span className="text-2xl font-black text-foreground">
+                  {projects.length}
+                </span>
+                <span className="text-[11px] text-muted-foreground block mt-0.5">
+                  Showcase Builds
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Total Revenue */}
           <Card className="rounded-2xl border bg-card shadow-sm col-span-2 lg:col-span-1">
             <CardContent className="p-4 sm:p-5 flex flex-col justify-between">
@@ -144,7 +167,7 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* -- Main Operations Tabs (Inventory & Orders) --------------- */}
+      {/* -- Main Operations Tabs (Inventory & Orders & Projects) ----- */}
       <Tabs defaultValue="inventory" className="space-y-6">
         <TabsList className="bg-muted p-1 rounded-xl h-12 inline-flex">
           <TabsTrigger
@@ -169,6 +192,14 @@ export default async function AdminDashboardPage() {
           </TabsTrigger>
 
           <TabsTrigger
+            value="projects"
+            className="rounded-lg h-10 px-5 text-xs sm:text-sm font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
+            <Trophy className="h-4 w-4 mr-2" />
+            Legacy & Projects
+          </TabsTrigger>
+
+          <TabsTrigger
             value="payment"
             className="rounded-lg h-10 px-5 text-xs sm:text-sm font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm"
           >
@@ -183,6 +214,10 @@ export default async function AdminDashboardPage() {
 
         <TabsContent value="orders" className="outline-none focus:outline-none">
           <OrdersClient initialOrders={orders} />
+        </TabsContent>
+
+        <TabsContent value="projects" className="outline-none focus:outline-none">
+          <ProjectsManager initialProjects={projects} />
         </TabsContent>
 
         <TabsContent value="payment" className="outline-none focus:outline-none">

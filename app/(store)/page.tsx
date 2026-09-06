@@ -1,13 +1,18 @@
 import { getComponents } from "@/lib/actions/components";
+import { getProjects } from "@/lib/actions/projects";
 import HeroSection from "@/components/home/hero-section";
 import { ComponentCatalog } from "@/components/catalog/component-catalog";
+import ProjectsShowcase from "@/components/home/projects-showcase";
 import ProjectCTA from "@/components/home/project-cta";
 import { Cpu, Truck, CheckCircle2, Headphones } from "lucide-react";
 
 export const revalidate = 0; // Fresh inventory
 
 export default async function HomePage() {
-  const components = await getComponents();
+  const [components, projects] = await Promise.all([
+    getComponents(),
+    getProjects(),
+  ]);
 
   return (
     <main className="flex flex-col min-h-screen">
@@ -45,7 +50,10 @@ export default async function HomePage() {
       {/* -- 3. Component Catalog Grid ------------------------------- */}
       <ComponentCatalog components={components} />
 
-      {/* -- 4. Custom Project CTA ----------------------------------- */}
+      {/* -- 4. Completed Projects & Legacy Showcase ------------------ */}
+      <ProjectsShowcase projects={projects} />
+
+      {/* -- 5. Custom Project CTA ----------------------------------- */}
       <ProjectCTA />
     </main>
   );

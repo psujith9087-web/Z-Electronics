@@ -125,6 +125,14 @@ export function Footer() {
               </li>
               <li>
                 <Link
+                  href="/legacy"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Legacy & Projects
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/orders"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
