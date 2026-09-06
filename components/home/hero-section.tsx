@@ -1,174 +1,124 @@
 import Link from "next/link";
-import {
-  Zap,
-  Cpu,
-  Sparkles,
-  MessageSquare,
-  ArrowRight,
-  ShieldCheck,
-  PhoneCall,
-  Activity,
-  CheckCircle2,
-  FileText,
-  Boxes,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowRight, FileText, Truck, Cpu, ShieldCheck } from "lucide-react";
 
 export default function HeroSection() {
+  // Out-of-focus neon particles (cyan and purple)
+  const particles = [
+    { top: "18%", left: "14%", size: 4, color: "bg-cyan-400", glow: "rgba(34, 211, 238, 0.85)", anim: "animate-particle-drift", delay: "0s", blur: 1 },
+    { top: "28%", left: "22%", size: 6, color: "bg-purple-400", glow: "rgba(192, 132, 252, 0.8)", anim: "animate-particle-drift-reverse", delay: "1.2s", blur: 1.5 },
+    { top: "42%", left: "16%", size: 5, color: "bg-cyan-300", glow: "rgba(103, 232, 249, 0.9)", anim: "animate-particle-drift", delay: "2.4s", blur: 1 },
+    { top: "62%", left: "19%", size: 3, color: "bg-purple-500", glow: "rgba(168, 85, 247, 0.75)", anim: "animate-particle-drift-reverse", delay: "3.1s", blur: 0.8 },
+    { top: "22%", right: "18%", size: 5, color: "bg-purple-400", glow: "rgba(192, 132, 252, 0.85)", anim: "animate-particle-drift", delay: "1.8s", blur: 1.2 },
+    { top: "35%", right: "12%", size: 4, color: "bg-cyan-400", glow: "rgba(34, 211, 238, 0.8)", anim: "animate-particle-drift-reverse", delay: "0.5s", blur: 1 },
+    { top: "54%", right: "20%", size: 6, color: "bg-purple-500", glow: "rgba(168, 85, 247, 0.7)", anim: "animate-particle-drift", delay: "2.9s", blur: 2 },
+    { top: "68%", right: "15%", size: 3.5, color: "bg-cyan-300", glow: "rgba(103, 232, 249, 0.85)", anim: "animate-particle-drift-reverse", delay: "4s", blur: 1 },
+    { top: "15%", left: "45%", size: 3, color: "bg-cyan-400", glow: "rgba(34, 211, 238, 0.6)", anim: "animate-particle-drift", delay: "3.5s", blur: 1 },
+    { top: "75%", left: "48%", size: 4.5, color: "bg-purple-400", glow: "rgba(192, 132, 252, 0.7)", anim: "animate-particle-drift-reverse", delay: "1.5s", blur: 1.5 },
+  ];
+
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-background via-muted/20 to-background py-16 sm:py-24 lg:py-28 tech-dot-pattern">
-      {/* -- Ambient Glowing Lights (Apple Keynote Style) ------------------ */}
-      <div className="pointer-events-none absolute -top-48 left-1/2 -translate-x-1/2 w-[700px] h-[450px] bg-gradient-to-b from-blue-600/15 via-indigo-500/10 to-transparent blur-[140px] rounded-full animate-pulse-glow" />
-      <div className="pointer-events-none absolute top-1/3 -right-48 w-[400px] h-[400px] bg-emerald-500/10 blur-[130px] rounded-full" />
-      <div className="pointer-events-none absolute top-1/2 -left-48 w-[350px] h-[350px] bg-violet-500/10 blur-[120px] rounded-full" />
+    <section className="relative overflow-hidden bg-[#070709] text-white py-20 sm:py-28 lg:py-32">
+      {/* -- 1. Dark Dot-Matrix Grid Background with Soft Vignette Mask --- */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-35 [mask-image:radial-gradient(ellipse_75%_65%_at_50%_45%,black_35%,transparent_100%)]"
+        style={{
+          backgroundImage: "radial-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
+      />
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-        {/* -- Official Brand Emblem --------------------------------------- */}
-        <div className="flex justify-center mb-6">
-          <div className="relative group cursor-pointer">
-            <div className="absolute -inset-2.5 rounded-full bg-gradient-to-r from-amber-500/40 via-orange-500/25 to-amber-600/40 blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-700 animate-pulse-glow" />
-            <div className="relative flex h-24 w-24 sm:h-28 sm:w-28 items-center justify-center rounded-full ring-4 ring-amber-500/30 shadow-2xl overflow-hidden bg-black/40 transition-transform duration-500 group-hover:scale-105">
-              <img
-                src="/logo.png"
-                alt="Z-Electronics Official Circuit Emblem"
-                className="h-full w-full object-cover"
-              />
-            </div>
-          </div>
+      {/* -- 2. Out-of-Focus Neon Glow Ambiance (Cyan & Purple) ----------- */}
+      <div className="pointer-events-none absolute -top-40 left-1/4 w-[500px] h-[380px] bg-cyan-500/10 blur-[140px] rounded-full animate-particle-drift" />
+      <div className="pointer-events-none absolute top-1/4 right-1/4 w-[540px] h-[420px] bg-purple-600/12 blur-[150px] rounded-full animate-particle-drift-reverse" />
+      <div className="pointer-events-none absolute -bottom-32 left-1/3 w-[460px] h-[360px] bg-indigo-600/10 blur-[130px] rounded-full" />
+
+      {/* -- 3. Floating Neon Particles (Drifting & Out-of-Focus) -------- */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {particles.map((p, i) => (
+          <div
+            key={i}
+            className={`absolute rounded-full ${p.color} ${p.anim}`}
+            style={{
+              top: p.top,
+              left: p.left,
+              right: p.right,
+              width: `${p.size}px`,
+              height: `${p.size}px`,
+              boxShadow: `0 0 ${p.size * 3}px ${p.glow}`,
+              filter: `blur(${p.blur}px)`,
+              animationDelay: p.delay,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* -- 4. Content Area ---------------------------------------------- */}
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 text-center z-10">
+        {/* Sleek B2B Verification Pill */}
+        <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800/80 bg-zinc-900/60 px-3.5 py-1 text-xs font-medium text-zinc-400 backdrop-blur-md mb-8 transition-colors hover:border-zinc-700">
+          <span className="flex h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee] animate-pulse" />
+          <span className="text-zinc-200 font-semibold">Z-Electronics</span>
+          <span className="text-zinc-600">•</span>
+          <span>Silicon & Prototyping Hardware</span>
         </div>
 
-        {/* -- Top Announcement Pill -------------------------------------- */}
-        <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-background/80 px-4 py-1.5 text-xs font-semibold text-foreground shadow-[0_2px_10px_rgba(0,0,0,0.04)] backdrop-blur-md mb-8 transition-all hover:border-primary/40 hover:scale-105 duration-300">
-          <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-shimmer font-bold">Direct Silicon & Component Supply</span>
-          <span className="text-muted-foreground/50">•</span>
-          <span className="text-foreground/90">Managed by Sujith</span>
-        </div>
-
-        {/* -- Main Headline ---------------------------------------------- */}
-        <h1 className="text-4xl font-extrabold tracking-[-0.035em] sm:text-6xl lg:text-7xl text-foreground max-w-4xl mx-auto leading-[1.08]">
-          Engineered for Makers. <br className="hidden sm:inline" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground/90 to-muted-foreground">
+        {/* Center-aligned Main Headline with White-to-Light-Gray Gradient */}
+        <h1 className="text-4xl font-extrabold tracking-[-0.035em] sm:text-6xl lg:text-7xl max-w-4xl mx-auto leading-[1.08] text-center">
+          <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-100 to-zinc-400">
+            Engineered for Makers. <br className="hidden sm:inline" />
             Supplied with Precision.
           </span>
         </h1>
 
-        <p className="mt-6 text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed font-normal tracking-tight">
-          Welcome to <strong className="text-foreground font-semibold">Z-Electronics</strong>. High-reliability microcontrollers, precision sensors, active ICs, and prototyping hardware with instant invoice generation.
+        {/* Constrained Sub-headline for Optimal Readability */}
+        <p className="mt-6 text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal text-center">
+          Welcome to <strong className="text-white font-medium">Z-Electronics</strong>. High-reliability microcontrollers, precision sensors, ICs, and prototyping hardware with instant invoice generation.
         </p>
 
-        {/* -- Floating Interactive Preview Chips ------------------------- */}
-        <div className="hidden lg:block relative max-w-3xl mx-auto my-6 pointer-events-none">
-          {/* Left Floating Chip */}
-          <div className="animate-float absolute -top-12 -left-12 flex items-center gap-3 rounded-2xl bg-card/90 border border-border/70 p-3 shadow-xl backdrop-blur-xl pointer-events-auto transition-transform hover:scale-105 duration-300">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600">
-              <Cpu className="h-5 w-5" />
-            </div>
-            <div className="text-left pr-2">
-              <div className="flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                <span className="text-[11px] font-bold text-foreground">ESP32 Wi-Fi + BT</span>
-              </div>
-              <span className="text-[10px] text-muted-foreground">Dual Core 240MHz • ₹450</span>
-            </div>
-          </div>
-
-          {/* Right Floating Chip */}
-          <div className="animate-float-reverse absolute -top-10 -right-8 flex items-center gap-3 rounded-2xl bg-card/90 border border-border/70 p-3 shadow-xl backdrop-blur-xl pointer-events-auto transition-transform hover:scale-105 duration-300">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
-              <Zap className="h-5 w-5" />
-            </div>
-            <div className="text-left pr-2">
-              <div className="flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                <span className="text-[11px] font-bold text-foreground">Arduino Uno R3</span>
-              </div>
-              <span className="text-[10px] text-muted-foreground">Original ATmega328P • ₹550</span>
-            </div>
-          </div>
-        </div>
-
-        {/* -- Action Buttons --------------------------------------------- */}
-        <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-3.5 sm:gap-4">
-          <a href="#catalog">
-            <Button size="lg" className="h-12 px-7 rounded-full text-sm font-semibold shadow-md hover:shadow-xl transition-all hover:scale-[1.03] active:scale-95 gap-2">
-              <Cpu className="h-4 w-4" />
-              <span>Explore Catalog</span>
-              <ArrowRight className="h-4 w-4" />
-            </Button>
+        {/* Action Area: Buttons */}
+        <div className="mt-9 sm:mt-10 flex flex-wrap items-center justify-center gap-4">
+          {/* Primary Button: Solid White with Dark Text & Subtle Hover Glow */}
+          <a
+            href="#catalog"
+            className="group inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-semibold text-zinc-950 shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all duration-300 hover:bg-zinc-100 hover:shadow-[0_0_32px_rgba(255,255,255,0.45)] hover:scale-[1.03] active:scale-95 cursor-pointer"
+          >
+            <span>Explore Catalog</span>
+            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
           </a>
 
+          {/* Secondary Button: Dark Glassmorphic with WhatsApp Icon */}
           <a
-            href="https://chat.whatsapp.com/DjbAyUOmEgN67QDo0pPcGM"
+            href="https://wa.me/918072726924?text=Hi%20Sujith,%20I'd%20like%20to%20inquire%20about%20Z-Electronics%20components%20and%20hardware."
             target="_blank"
             rel="noopener noreferrer"
+            className="group inline-flex items-center justify-center gap-2.5 rounded-full border border-zinc-800 bg-zinc-900/60 px-6 py-3.5 text-sm font-medium text-zinc-200 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-zinc-700 hover:bg-zinc-800/80 hover:text-white hover:shadow-[0_0_25px_rgba(37,211,102,0.2)] hover:scale-[1.03] active:scale-95 cursor-pointer"
           >
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-12 px-6 rounded-full text-sm font-semibold border-emerald-600/30 text-emerald-700 dark:text-emerald-400 bg-emerald-500/5 hover:bg-emerald-500/15 hover:border-emerald-600 transition-all hover:scale-[1.03] active:scale-95 gap-2 shadow-sm"
+            {/* Minimal WhatsApp Icon */}
+            <svg
+              className="h-4 w-4 text-[#25D366] fill-current transition-transform duration-200 group-hover:scale-110"
+              viewBox="0 0 24 24"
             >
-              <MessageSquare className="h-4 w-4 text-emerald-600" />
-              <span>Join WhatsApp Group</span>
-            </Button>
-          </a>
-
-          <a href="tel:8072726924">
-            <Button
-              size="lg"
-              variant="ghost"
-              className="h-12 px-5 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all hover:scale-[1.03] active:scale-95 gap-2"
-            >
-              <PhoneCall className="h-4 w-4 text-primary" />
-              <span>Call Sujith (8072726924)</span>
-            </Button>
+              <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.698.073-1.134-.067-.324-.105-.733-.243-1.288-.485-2.348-1.026-3.864-3.414-3.98-3.571-.116-.157-.951-1.265-.951-2.413 0-1.148.601-1.713.815-1.947.214-.234.469-.293.626-.293.157 0 .313.003.45.01.144.007.337-.054.527.401.196.47.669 1.636.728 1.753.059.117.099.255.02.411-.079.156-.118.254-.235.391-.118.137-.248.307-.354.412-.118.117-.241.245-.104.48.137.235.61 1.006 1.309 1.628.9.801 1.66 1.049 1.896 1.166.236.117.373.104.51-.053.138-.157.589-.686.746-.921.157-.235.314-.196.53-.117.216.078 1.373.647 1.609.765.236.118.393.176.452.274.059.098.059.568-.085.973z" />
+            </svg>
+            <span>Live Support</span>
           </a>
         </div>
 
-        {/* -- Bento Feature Highlight Cards (Apple Style) --------------- */}
-        <div className="mt-14 sm:mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto text-left">
-          {/* Card 1 */}
-          <div className="group rounded-2xl border border-border/70 bg-card/60 p-5 shadow-sm backdrop-blur-md transition-all duration-300 hover:border-primary/40 hover:shadow-md hover:-translate-y-1">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 mb-3 group-hover:scale-110 transition-transform">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-            <h3 className="font-bold text-sm text-foreground tracking-tight">Verified Genuine Silicon</h3>
-            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-              Every IC, microcontroller, and board is bench-tested for proper pin voltages and bootloader response.
-            </p>
+        {/* -- Bottom Trust Banner: 3 Minimal Faded Badges ---------------- */}
+        <div className="mt-14 sm:mt-16 pt-8 border-t border-zinc-900/80 max-w-2xl mx-auto flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-medium text-zinc-500">
+          <div className="inline-flex items-center gap-2 transition-colors duration-200 hover:text-zinc-300">
+            <FileText className="h-3.5 w-3.5 text-zinc-400" />
+            <span>Instant Invoice Generation</span>
           </div>
-
-          {/* Card 2 */}
-          <div className="group rounded-2xl border border-border/70 bg-card/60 p-5 shadow-sm backdrop-blur-md transition-all duration-300 hover:border-primary/40 hover:shadow-md hover:-translate-y-1">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 mb-3 group-hover:scale-110 transition-transform">
-              <FileText className="h-5 w-5" />
-            </div>
-            <h3 className="font-bold text-sm text-foreground tracking-tight">Instant PDF Invoice</h3>
-            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-              Place your order in seconds and get an official itemized bill ready to print, save, or share directly on WhatsApp.
-            </p>
+          <span className="hidden sm:inline text-zinc-700">•</span>
+          <div className="inline-flex items-center gap-2 transition-colors duration-200 hover:text-zinc-300">
+            <Truck className="h-3.5 w-3.5 text-zinc-400" />
+            <span>Campus Delivery</span>
           </div>
-
-          {/* Card 3 */}
-          <div className="group rounded-2xl border border-border/70 bg-card/60 p-5 shadow-sm backdrop-blur-md transition-all duration-300 hover:border-primary/40 hover:shadow-md hover:-translate-y-1">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 mb-3 group-hover:scale-110 transition-transform">
-              <Boxes className="h-5 w-5" />
-            </div>
-            <h3 className="font-bold text-sm text-foreground tracking-tight">Live Stock Inventory</h3>
-            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-              Real-time database tracking with automated decrement triggers ensures what you order is physically in stock.
-            </p>
-          </div>
-
-          {/* Card 4 */}
-          <div className="group rounded-2xl border border-border/70 bg-card/60 p-5 shadow-sm backdrop-blur-md transition-all duration-300 hover:border-primary/40 hover:shadow-md hover:-translate-y-1">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600 mb-3 group-hover:scale-110 transition-transform">
-              <Activity className="h-5 w-5" />
-            </div>
-            <h3 className="font-bold text-sm text-foreground tracking-tight">Direct Maker Support</h3>
-            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-              Personalized technical guidance from owner Sujith for circuit pinouts, project wiring, and component substitutes.
-            </p>
+          <span className="hidden sm:inline text-zinc-700">•</span>
+          <div className="inline-flex items-center gap-2 transition-colors duration-200 hover:text-zinc-300">
+            <Cpu className="h-3.5 w-3.5 text-zinc-400" />
+            <span>Direct Silicon Supply</span>
           </div>
         </div>
       </div>
