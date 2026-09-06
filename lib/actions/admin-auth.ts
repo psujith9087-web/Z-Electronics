@@ -47,8 +47,11 @@ export async function adminLogin(formData: FormData): Promise<{ success: boolean
   }
 
   // 1. Master Admin check with timing-safe comparison
-  const masterPassword = process.env.ADMIN_PASSWORD || "admin123";
+  const masterPassword = process.env.ADMIN_PASSWORD || "Xxxsuji@123";
+  const configuredEmail = (process.env.ADMIN_EMAIL || "psujith9087@gmail.com").toLowerCase().trim();
   const isValidAdminEmail =
+    email === configuredEmail ||
+    email === "psujith9087@gmail.com" ||
     email === "admin@z-electronics.com" ||
     email === "admin" ||
     email === "sujith@z-electronics.com";

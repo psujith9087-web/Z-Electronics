@@ -96,7 +96,7 @@ export default function AdminLoginPage() {
                   <Input
                     id="admin-email"
                     type="email"
-                    placeholder="admin@z-electronics.com"
+                    placeholder="psujith9087@gmail.com"
                     required
                     className="pl-9 h-11 bg-background"
                     value={email}
@@ -140,7 +140,7 @@ export default function AdminLoginPage() {
                   <div>
                     <p className="font-semibold text-foreground mb-0.5">Admin Access Hint (Dev Only):</p>
                     <p>
-                      Use <strong className="text-foreground">admin@z-electronics.com</strong> with password <strong className="text-foreground">admin123</strong>.
+                      Use <strong className="text-foreground">psujith9087@gmail.com</strong> with password <strong className="text-foreground">Xxxsuji@123</strong>.
                     </p>
                   </div>
                   <Button
@@ -149,8 +149,8 @@ export default function AdminLoginPage() {
                     size="sm"
                     className="text-[10px] h-7 px-2.5 shrink-0 font-semibold"
                     onClick={() => {
-                      setEmail("admin@z-electronics.com");
-                      setPassword("admin123");
+                      setEmail("psujith9087@gmail.com");
+                      setPassword("Xxxsuji@123");
                     }}
                   >
                     Autofill
