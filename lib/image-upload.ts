@@ -5,9 +5,9 @@
  */
 export function compressImageFile(
   file: File,
-  maxWidth = 800,
-  maxHeight = 800,
-  quality = 0.85
+  maxWidth = 640,
+  maxHeight = 640,
+  quality = 0.75
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     if (!file.type.startsWith("image/")) {

@@ -248,7 +248,6 @@ export function ComponentCatalog({ components }: ComponentCatalogProps) {
                         <img
                           src={component.image_url}
                           alt={component.name}
-                          loading="lazy"
                           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                           onError={(e) => {
                             (e.currentTarget as HTMLElement).style.display = "none";

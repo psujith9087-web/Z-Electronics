@@ -1,10 +1,54 @@
 "use server";
 
+import fs from "fs";
+import path from "path";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { MOCK_COMPONENTS } from "@/lib/mock-data";
 import { ComponentItem } from "@/lib/types";
 import { revalidatePath } from "next/cache";
+
+const COMPONENT_IMAGES_FILE = path.join(process.cwd(), "public", "component-images.json");
+
+function getLocalImageMap(): Record<string, string> {
+  try {
+    if (fs.existsSync(COMPONENT_IMAGES_FILE)) {
+      const raw = fs.readFileSync(COMPONENT_IMAGES_FILE, "utf8");
+      return JSON.parse(raw);
+    }
+  } catch (e) {
+    console.error("Error reading component-images.json:", e);
+  }
+  return {};
+}
+
+function saveLocalImageMap(id: string, imageUrl: string) {
+  try {
+    const map = getLocalImageMap();
+    map[id] = imageUrl;
+    const publicDir = path.join(process.cwd(), "public");
+    if (!fs.existsSync(publicDir)) {
+      fs.mkdirSync(publicDir, { recursive: true });
+    }
+    fs.writeFileSync(COMPONENT_IMAGES_FILE, JSON.stringify(map, null, 2), "utf8");
+  } catch (e) {
+    console.error("Error saving component image to local map:", e);
+  }
+}
+
+function encodeDescriptionWithImage(description: string, imageUrl?: string): string {
+  const clean = description.replace(/__IMG__[\s\S]*?__IMG__/g, "").trim();
+  if (!imageUrl || !imageUrl.trim()) return clean;
+  return `${clean}\n\n__IMG__${imageUrl.trim()}__IMG__`.trim();
+}
+
+function decodeDescriptionAndImage(rawDescription: string | null | undefined): { description: string; imageUrl: string } {
+  if (!rawDescription) return { description: "", imageUrl: "" };
+  const match = rawDescription.match(/__IMG__([\s\S]*?)__IMG__/);
+  const imageUrl = match ? match[1].trim() : "";
+  const description = rawDescription.replace(/__IMG__[\s\S]*?__IMG__/g, "").trim();
+  return { description, imageUrl };
+}
 
 export async function getComponents(): Promise<ComponentItem[]> {
   try {
@@ -22,7 +66,17 @@ export async function getComponents(): Promise<ComponentItem[]> {
       return MOCK_COMPONENTS;
     }
 
-    return data as ComponentItem[];
+    const localMap = getLocalImageMap();
+
+    return data.map((item: any) => {
+      const decoded = decodeDescriptionAndImage(item.description);
+      const imageUrl = item.image_url || decoded.imageUrl || localMap[item.id] || "";
+      return {
+        ...item,
+        description: decoded.description,
+        image_url: imageUrl,
+      };
+    }) as ComponentItem[];
   } catch (error) {
     console.error("Error fetching components:", error);
     return MOCK_COMPONENTS;
@@ -35,7 +89,6 @@ export async function createComponent(formData: FormData): Promise<{ success: bo
     const description = (formData.get("description") as string) || "";
     const price = parseFloat(formData.get("price") as string);
     const stock_quantity = parseInt(formData.get("stock_quantity") as string, 10);
-
     const image_url = ((formData.get("image_url") as string) || "").trim();
 
     if (!name || isNaN(price) || isNaN(stock_quantity)) {
@@ -59,9 +112,10 @@ export async function createComponent(formData: FormData): Promise<{ success: bo
     }
 
     const supabase = await createClient();
+    const encodedDescription = encodeDescriptionWithImage(description, image_url);
     const payload: Record<string, any> = {
       name,
-      description,
+      description: encodedDescription,
       price,
       stock_quantity,
       image_url,
@@ -73,7 +127,7 @@ export async function createComponent(formData: FormData): Promise<{ success: bo
       .select()
       .single();
 
-    // If table doesn't have image_url column yet, fallback gracefully
+    // If table doesn't have image_url column yet, insert with encoded description
     if (error && (error.message.includes("image_url") || error.code === "PGRST204")) {
       delete payload.image_url;
       const retry = await supabase
@@ -85,13 +139,24 @@ export async function createComponent(formData: FormData): Promise<{ success: bo
       error = retry.error;
     }
 
-    if (error) {
-      return { success: false, error: error.message };
+    if (error || !data) {
+      return { success: false, error: error?.message || "Failed to create component" };
+    }
+
+    if (image_url && data.id) {
+      saveLocalImageMap(data.id, image_url);
     }
 
     revalidatePath("/");
     revalidatePath("/admin");
-    return { success: true, data: data as ComponentItem };
+    return {
+      success: true,
+      data: {
+        ...data,
+        description,
+        image_url,
+      } as ComponentItem,
+    };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to create component";
     return { success: false, error: message };
@@ -131,9 +196,10 @@ export async function updateComponent(
     }
 
     const supabase = await createClient();
+    const encodedDescription = encodeDescriptionWithImage(description, image_url);
     const payload: Record<string, any> = {
       name,
-      description,
+      description: encodedDescription,
       price,
       stock_quantity,
       image_url,
@@ -146,7 +212,7 @@ export async function updateComponent(
       .select()
       .single();
 
-    // If table doesn't have image_url column yet, fallback gracefully
+    // If table doesn't have image_url column yet, update with encoded description
     if (error && (error.message.includes("image_url") || error.code === "PGRST204")) {
       delete payload.image_url;
       const retry = await supabase
@@ -163,9 +229,20 @@ export async function updateComponent(
       return { success: false, error: error.message };
     }
 
+    if (image_url) {
+      saveLocalImageMap(id, image_url);
+    }
+
     revalidatePath("/");
     revalidatePath("/admin");
-    return { success: true, data: data as ComponentItem };
+    return {
+      success: true,
+      data: {
+        ...(data || {}),
+        description,
+        image_url,
+      } as ComponentItem,
+    };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to update component";
     return { success: false, error: message };
