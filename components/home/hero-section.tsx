@@ -17,13 +17,27 @@ import { Button } from "@/components/ui/button";
 export default function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-background via-muted/20 to-background py-16 sm:py-24 lg:py-28 tech-dot-pattern">
-      {/* ── Ambient Glowing Lights (Apple Keynote Style) ────────────────── */}
+      {/* -- Ambient Glowing Lights (Apple Keynote Style) ------------------ */}
       <div className="pointer-events-none absolute -top-48 left-1/2 -translate-x-1/2 w-[700px] h-[450px] bg-gradient-to-b from-blue-600/15 via-indigo-500/10 to-transparent blur-[140px] rounded-full animate-pulse-glow" />
       <div className="pointer-events-none absolute top-1/3 -right-48 w-[400px] h-[400px] bg-emerald-500/10 blur-[130px] rounded-full" />
       <div className="pointer-events-none absolute top-1/2 -left-48 w-[350px] h-[350px] bg-violet-500/10 blur-[120px] rounded-full" />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-        {/* ── Top Announcement Pill ────────────────────────────────────── */}
+        {/* -- Official Brand Emblem --------------------------------------- */}
+        <div className="flex justify-center mb-6">
+          <div className="relative group cursor-pointer">
+            <div className="absolute -inset-2.5 rounded-full bg-gradient-to-r from-amber-500/40 via-orange-500/25 to-amber-600/40 blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-700 animate-pulse-glow" />
+            <div className="relative flex h-24 w-24 sm:h-28 sm:w-28 items-center justify-center rounded-full ring-4 ring-amber-500/30 shadow-2xl overflow-hidden bg-black/40 transition-transform duration-500 group-hover:scale-105">
+              <img
+                src="/logo.png"
+                alt="Z-Electronics Official Circuit Emblem"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* -- Top Announcement Pill -------------------------------------- */}
         <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-background/80 px-4 py-1.5 text-xs font-semibold text-foreground shadow-[0_2px_10px_rgba(0,0,0,0.04)] backdrop-blur-md mb-8 transition-all hover:border-primary/40 hover:scale-105 duration-300">
           <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-shimmer font-bold">Direct Silicon & Component Supply</span>
@@ -31,7 +45,7 @@ export default function HeroSection() {
           <span className="text-foreground/90">Managed by Sujith</span>
         </div>
 
-        {/* ── Main Headline ────────────────────────────────────────────── */}
+        {/* -- Main Headline ---------------------------------------------- */}
         <h1 className="text-4xl font-extrabold tracking-[-0.035em] sm:text-6xl lg:text-7xl text-foreground max-w-4xl mx-auto leading-[1.08]">
           Engineered for Makers. <br className="hidden sm:inline" />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground/90 to-muted-foreground">
@@ -43,7 +57,7 @@ export default function HeroSection() {
           Welcome to <strong className="text-foreground font-semibold">Z-Electronics</strong>. High-reliability microcontrollers, precision sensors, active ICs, and prototyping hardware with instant invoice generation.
         </p>
 
-        {/* ── Floating Interactive Preview Chips ───────────────────────── */}
+        {/* -- Floating Interactive Preview Chips ------------------------- */}
         <div className="hidden lg:block relative max-w-3xl mx-auto my-6 pointer-events-none">
           {/* Left Floating Chip */}
           <div className="animate-float absolute -top-12 -left-12 flex items-center gap-3 rounded-2xl bg-card/90 border border-border/70 p-3 shadow-xl backdrop-blur-xl pointer-events-auto transition-transform hover:scale-105 duration-300">
@@ -74,7 +88,7 @@ export default function HeroSection() {
           </div>
         </div>
 
-        {/* ── Action Buttons ───────────────────────────────────────────── */}
+        {/* -- Action Buttons --------------------------------------------- */}
         <div className="mt-8 sm:mt-10 flex flex-wrap items-center justify-center gap-3.5 sm:gap-4">
           <a href="#catalog">
             <Button size="lg" className="h-12 px-7 rounded-full text-sm font-semibold shadow-md hover:shadow-xl transition-all hover:scale-[1.03] active:scale-95 gap-2">
@@ -111,7 +125,7 @@ export default function HeroSection() {
           </a>
         </div>
 
-        {/* ── Bento Feature Highlight Cards (Apple Style) ─────────────── */}
+        {/* -- Bento Feature Highlight Cards (Apple Style) --------------- */}
         <div className="mt-14 sm:mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto text-left">
           {/* Card 1 */}
           <div className="group rounded-2xl border border-border/70 bg-card/60 p-5 shadow-sm backdrop-blur-md transition-all duration-300 hover:border-primary/40 hover:shadow-md hover:-translate-y-1">

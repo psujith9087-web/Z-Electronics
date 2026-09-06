@@ -243,7 +243,7 @@ export function OrdersClient({ initialOrders }: OrdersClientProps) {
         </Table>
       </div>
 
-      {/* ── ORDER ITEMS BREAKDOWN DIALOG ──────────────────────────────────── */}
+      {/* -- ORDER ITEMS BREAKDOWN DIALOG ------------------------------------ */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>

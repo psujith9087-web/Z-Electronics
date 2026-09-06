@@ -15,8 +15,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Z-Electronics — Premium Electronic Components",
-  description: "Premium electronic components for makers, engineers, and hobbyists. Quality parts, fast shipping, and expert support.",
+  title: "Z-Electronics — Project Based Electronics & Component Supply",
+  description: "Premium electronic components for makers, engineers, and hobbyists. Quality parts, fast shipping, and expert support by Sujith.",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

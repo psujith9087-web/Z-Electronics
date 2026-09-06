@@ -28,6 +28,7 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
   const [addDescription, setAddDescription] = useState("");
   const [addPrice, setAddPrice] = useState("");
   const [addStock, setAddStock] = useState("");
+  const [addImageUrl, setAddImageUrl] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
   // Edit Component Dialog state
@@ -37,12 +38,23 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
   const [editDescription, setEditDescription] = useState("");
   const [editPrice, setEditPrice] = useState("");
   const [editStock, setEditStock] = useState("");
+  const [editImageUrl, setEditImageUrl] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Delete Component Dialog state
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Quick preset images for admin convenience
+  const PRESET_IMAGES = [
+    { label: "Arduino", url: "https://images.unsplash.com/photo-1553406830-ef2513450d76?w=600&auto=format&fit=crop&q=80" },
+    { label: "ESP32", url: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80" },
+    { label: "Sensor", url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80" },
+    { label: "Display", url: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80" },
+    { label: "Motor", url: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=600&auto=format&fit=crop&q=80" },
+    { label: "IC & Chip", url: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=600&auto=format&fit=crop&q=80" },
+  ];
 
   // Filter components
   const filtered = components.filter((c) => {
@@ -72,6 +84,7 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
       formData.set("description", addDescription.trim());
       formData.set("price", addPrice);
       formData.set("stock_quantity", addStock);
+      formData.set("image_url", addImageUrl.trim());
 
       const res = await createComponent(formData);
       if (res.success && res.data) {
@@ -82,6 +95,7 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
         setAddDescription("");
         setAddPrice("");
         setAddStock("");
+        setAddImageUrl("");
       } else {
         toast.error(res.error || "Failed to add component.");
       }
@@ -99,6 +113,7 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
     setEditDescription(comp.description);
     setEditPrice(comp.price.toString());
     setEditStock(comp.stock_quantity.toString());
+    setEditImageUrl(comp.image_url || "");
     setIsEditOpen(true);
   };
 
@@ -114,6 +129,7 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
       formData.set("description", editDescription.trim());
       formData.set("price", editPrice);
       formData.set("stock_quantity", editStock);
+      formData.set("image_url", editImageUrl.trim());
 
       const res = await updateComponent(editingComponent.id, formData);
       if (res.success) {
@@ -127,6 +143,7 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
                   description: editDescription.trim(),
                   price: parseFloat(editPrice),
                   stock_quantity: parseInt(editStock, 10),
+                  image_url: editImageUrl.trim(),
                 }
               : c
           )
@@ -215,6 +232,7 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
         <Table>
           <TableHeader>
             <tr className="border-b bg-muted/40 text-xs font-bold text-muted-foreground">
+              <TableHead className="py-3.5 px-3 w-16 text-center">Photo</TableHead>
               <TableHead className="py-3.5 px-4">Component Name & Details</TableHead>
               <TableHead className="py-3.5 px-4 text-right">Unit Price</TableHead>
               <TableHead className="py-3.5 px-4 text-center">Stock Quantity</TableHead>
@@ -229,11 +247,25 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
 
               return (
                 <TableRow key={comp.id} className="hover:bg-muted/30 transition-colors">
+                  <TableCell className="py-3 px-3 text-center">
+                    <div className="h-11 w-11 rounded-xl border border-border/80 bg-muted/40 overflow-hidden flex items-center justify-center mx-auto shadow-inner">
+                      {comp.image_url ? (
+                        <img
+                          src={comp.image_url}
+                          alt={comp.name}
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <Cpu className="h-5 w-5 text-muted-foreground/60" />
+                      )}
+                    </div>
+                  </TableCell>
+
                   <TableCell className="py-4 px-4">
-                    <div className="flex items-start gap-3">
-                      <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
-                        <Cpu className="h-4 w-4" />
-                      </div>
+                    <div className="flex items-start gap-2.5">
                       <div>
                         <span className="font-bold text-foreground text-sm block leading-snug">
                           {comp.name}
@@ -310,7 +342,7 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
         </Table>
       </div>
 
-      {/* ── ADD COMPONENT MODAL ─────────────────────────────────────────── */}
+      {/* -- ADD COMPONENT MODAL ------------------------------------------- */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -380,6 +412,51 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
               </div>
             </div>
 
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="add-image" className="text-xs font-semibold">
+                  Component Photo URL
+                </Label>
+                <span className="text-[10px] text-muted-foreground">Direct link or pick below</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="add-image"
+                  type="url"
+                  placeholder="https://... image link"
+                  value={addImageUrl}
+                  onChange={(e) => setAddImageUrl(e.target.value)}
+                  className="text-xs"
+                />
+                {addImageUrl && (
+                  <div className="h-10 w-10 rounded-xl border border-border/80 overflow-hidden shrink-0 bg-muted/40 shadow-inner">
+                    <img
+                      src={addImageUrl}
+                      alt="Preview"
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = "none";
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+              {/* Quick Presets */}
+              <div className="flex flex-wrap items-center gap-1 pt-1">
+                <span className="text-[10px] text-muted-foreground mr-1">Presets:</span>
+                {PRESET_IMAGES.map((p) => (
+                  <button
+                    key={p.label}
+                    type="button"
+                    onClick={() => setAddImageUrl(p.url)}
+                    className="text-[10px] px-2 py-0.5 rounded-full bg-muted/70 hover:bg-muted text-foreground font-medium transition-colors border border-border/60"
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <DialogFooter className="pt-4">
               <Button
                 type="button"
@@ -404,7 +481,7 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
         </DialogContent>
       </Dialog>
 
-      {/* ── EDIT COMPONENT MODAL ────────────────────────────────────────── */}
+      {/* -- EDIT COMPONENT MODAL ------------------------------------------ */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -470,6 +547,51 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
               </div>
             </div>
 
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="edit-image" className="text-xs font-semibold">
+                  Component Photo URL
+                </Label>
+                <span className="text-[10px] text-muted-foreground">Direct link or pick below</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="edit-image"
+                  type="url"
+                  placeholder="https://... image link"
+                  value={editImageUrl}
+                  onChange={(e) => setEditImageUrl(e.target.value)}
+                  className="text-xs"
+                />
+                {editImageUrl && (
+                  <div className="h-10 w-10 rounded-xl border border-border/80 overflow-hidden shrink-0 bg-muted/40 shadow-inner">
+                    <img
+                      src={editImageUrl}
+                      alt="Preview"
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = "none";
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+              {/* Quick Presets */}
+              <div className="flex flex-wrap items-center gap-1 pt-1">
+                <span className="text-[10px] text-muted-foreground mr-1">Presets:</span>
+                {PRESET_IMAGES.map((p) => (
+                  <button
+                    key={p.label}
+                    type="button"
+                    onClick={() => setEditImageUrl(p.url)}
+                    className="text-[10px] px-2 py-0.5 rounded-full bg-muted/70 hover:bg-muted text-foreground font-medium transition-colors border border-border/60"
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <DialogFooter className="pt-4">
               <Button
                 type="button"
@@ -494,7 +616,7 @@ export function ComponentsClient({ initialComponents }: ComponentsClientProps) {
         </DialogContent>
       </Dialog>
 
-      {/* ── DELETE CONFIRMATION MODAL ───────────────────────────────────── */}
+      {/* -- DELETE CONFIRMATION MODAL ------------------------------------- */}
       <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>

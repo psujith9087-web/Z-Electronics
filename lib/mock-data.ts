@@ -7,6 +7,7 @@ export const MOCK_COMPONENTS: ComponentItem[] = [
     description: "The classic microcontroller board for electronics prototyping. 14 digital I/O pins, 6 analog inputs, 16 MHz quartz crystal, and USB connection.",
     price: 549.0,
     stock_quantity: 65,
+    image_url: "https://images.unsplash.com/photo-1553406830-ef2513450d76?w=600&auto=format&fit=crop&q=80",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
   },
   {
@@ -15,6 +16,7 @@ export const MOCK_COMPONENTS: ComponentItem[] = [
     description: "Powerful IoT microcontroller with 240MHz dual-core Tensilica Xtensa 32-bit LX6, integrated 802.11 b/g/n Wi-Fi and Bluetooth 4.2 BR/EDR & BLE.",
     price: 449.0,
     stock_quantity: 90,
+    image_url: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 9).toISOString(),
   },
   {
@@ -23,6 +25,7 @@ export const MOCK_COMPONENTS: ComponentItem[] = [
     description: "Dual-core ARM Cortex-M0+ microcontroller with built-in 2.4GHz wireless interface. 26 multi-function GPIO pins and programmable I/O.",
     price: 399.0,
     stock_quantity: 80,
+    image_url: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&auto=format&fit=crop&q=80",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 8).toISOString(),
   },
   {
@@ -31,6 +34,7 @@ export const MOCK_COMPONENTS: ComponentItem[] = [
     description: "Ultrasonic ranging module providing 2cm to 400cm non-contact measurement function with 3mm accuracy. Perfect for obstacle avoidance robots.",
     price: 69.0,
     stock_quantity: 150,
+    image_url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
   },
   {
@@ -39,6 +43,7 @@ export const MOCK_COMPONENTS: ComponentItem[] = [
     description: "High accuracy digital humidity and temperature module. Measures relative humidity (0-100%) and temperature (-40 to 80°C) with single-bus digital output.",
     price: 349.0,
     stock_quantity: 45,
+    image_url: "https://images.unsplash.com/photo-1581092335397-9583fe92d232?w=600&auto=format&fit=crop&q=80",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString(),
   },
   {
@@ -47,6 +52,7 @@ export const MOCK_COMPONENTS: ComponentItem[] = [
     description: "Combines a 3-axis gyroscope and a 3-axis accelerometer on the same silicon die with an onboard Digital Motion Processor (DMP). I2C communication.",
     price: 179.0,
     stock_quantity: 75,
+    image_url: "https://images.unsplash.com/photo-1563770660941-20978e870e26?w=600&auto=format&fit=crop&q=80",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
   },
   {
@@ -55,6 +61,7 @@ export const MOCK_COMPONENTS: ComponentItem[] = [
     description: "Compact graphic display module with SSD1306 driver, high contrast, wide viewing angle, and simple 4-pin I2C interface.",
     price: 249.0,
     stock_quantity: 60,
+    image_url: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
   },
   {
@@ -63,6 +70,7 @@ export const MOCK_COMPONENTS: ComponentItem[] = [
     description: "Optocoupler isolated relay board for driving AC/DC loads up to 10A 250VAC. Ideal for home automation and smart switches.",
     price: 189.0,
     stock_quantity: 50,
+    image_url: "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=600&auto=format&fit=crop&q=80",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
   },
   {
@@ -71,6 +79,7 @@ export const MOCK_COMPONENTS: ComponentItem[] = [
     description: "Miniature lightweight servo motor with 180-degree rotation, 1.8 kg-cm torque. Includes 3 horn attachments and mounting screws.",
     price: 79.0,
     stock_quantity: 120,
+    image_url: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=600&auto=format&fit=crop&q=80",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
   },
   {
@@ -79,6 +88,7 @@ export const MOCK_COMPONENTS: ComponentItem[] = [
     description: "High power dual motor driver module capable of driving two DC motors or one 4-wire stepper motor up to 2A per bridge.",
     price: 149.0,
     stock_quantity: 55,
+    image_url: "https://images.unsplash.com/photo-1581092162384-8987c1d64718?w=600&auto=format&fit=crop&q=80",
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1).toISOString(),
   },
   {
@@ -87,6 +97,7 @@ export const MOCK_COMPONENTS: ComponentItem[] = [
     description: "30 common resistor values from 10 Ohm to 1M Ohm, 20 pieces each. 1% tolerance, flame retardant coating.",
     price: 159.0,
     stock_quantity: 110,
+    image_url: "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=600&auto=format&fit=crop&q=80",
     created_at: new Date().toISOString(),
   },
   {
@@ -95,6 +106,7 @@ export const MOCK_COMPONENTS: ComponentItem[] = [
     description: "Assorted pack of ultra-bright diffused 5mm LEDs: Red, Green, Blue, Yellow, and White (20 pcs of each). 20mA forward current.",
     price: 89.0,
     stock_quantity: 200,
+    image_url: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop&q=80",
     created_at: new Date().toISOString(),
   }
 ];

@@ -23,8 +23,12 @@ CREATE TABLE public.components (
   description TEXT NOT NULL DEFAULT '',
   price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
   stock_quantity INTEGER NOT NULL DEFAULT 0 CHECK (stock_quantity >= 0),
+  image_url TEXT DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Quick migration for existing databases:
+ALTER TABLE public.components ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT '';
 
 -- Orders Table
 CREATE TABLE public.orders (

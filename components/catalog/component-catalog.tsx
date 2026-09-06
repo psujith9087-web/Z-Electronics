@@ -241,28 +241,50 @@ export function ComponentCatalog({ components }: ComponentCatalogProps) {
                   key={component.id}
                   className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border-border/70 bg-card/80 backdrop-blur-md transition-all duration-300 hover:-translate-y-2 hover:border-primary/50 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)]"
                 >
-                  <CardContent className="p-6 flex flex-col flex-1">
-                    {/* Top Meta Bar */}
-                    <div className="flex items-start justify-between gap-2 mb-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-inner">
-                        <Cpu className="h-6 w-6" />
-                      </div>
+                  <CardContent className="p-5 flex flex-col flex-1">
+                    {/* Component Photo Showcase (Customer Visual) */}
+                    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-muted/30 mb-4 border border-border/60 shadow-inner group/img">
+                      {component.image_url ? (
+                        <img
+                          src={component.image_url}
+                          alt={component.name}
+                          loading="lazy"
+                          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = "none";
+                            const fallback = e.currentTarget.parentElement?.querySelector(".fallback-tech-icon");
+                            if (fallback) fallback.classList.remove("hidden");
+                          }}
+                        />
+                      ) : null}
                       
-                      {isOutOfStock ? (
-                        <Badge variant="destructive" className="text-[10px] font-bold rounded-full px-2.5 py-0.5">
-                          Out of Stock
-                        </Badge>
-                      ) : isLowStock ? (
-                        <Badge variant="outline" className="text-[10px] font-bold rounded-full px-2.5 py-0.5 border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10 flex items-center gap-1">
-                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-                          Low Stock ({component.stock_quantity})
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="text-[10px] font-bold rounded-full px-2.5 py-0.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                          In Stock ({component.stock_quantity})
-                        </Badge>
-                      )}
+                      <div className={`fallback-tech-icon h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 via-muted/40 to-muted/80 p-4 text-center ${component.image_url ? "hidden" : "flex"}`}>
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15 text-primary shadow-inner mb-1.5 transition-transform duration-300 group-hover:scale-110">
+                          <Cpu className="h-6 w-6" />
+                        </div>
+                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                          Silicon & Hardware
+                        </span>
+                      </div>
+
+                      {/* Stock Status Badge Overlay */}
+                      <div className="absolute top-2.5 right-2.5 z-10 backdrop-blur-md">
+                        {isOutOfStock ? (
+                          <Badge variant="destructive" className="text-[10px] font-bold rounded-full px-2.5 py-0.5 shadow-sm">
+                            Out of Stock
+                          </Badge>
+                        ) : isLowStock ? (
+                          <Badge variant="outline" className="text-[10px] font-bold rounded-full px-2.5 py-0.5 border-amber-500/40 text-amber-600 dark:text-amber-400 bg-background/90 shadow-sm flex items-center gap-1">
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            Low Stock ({component.stock_quantity})
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-[10px] font-bold rounded-full px-2.5 py-0.5 bg-background/90 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 shadow-sm flex items-center gap-1">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            In Stock ({component.stock_quantity})
+                          </Badge>
+                        )}
+                      </div>
                     </div>
 
                     {/* Component Name */}

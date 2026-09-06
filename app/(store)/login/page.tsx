@@ -62,7 +62,7 @@ export default function LoginPage() {
   );
 }
 
-// ─── Sign In ─────────────────────────────────────────────
+// --- Sign In ---------------------------------------------
 
 function SignInForm() {
   const router = useRouter();
@@ -147,7 +147,7 @@ function SignInForm() {
   );
 }
 
-// ─── Sign Up ─────────────────────────────────────────────
+// --- Sign Up ---------------------------------------------
 
 function SignUpForm() {
   const [error, setError] = useState("");

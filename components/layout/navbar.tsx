@@ -4,11 +4,9 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import {
-  Zap,
   Sun,
   Moon,
   ShoppingCart,
-  Shield,
   MessageSquare,
   Phone,
   Layers,
@@ -86,8 +84,12 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand */}
         <Link href="/" className="group flex items-center gap-3 transition-transform duration-300 hover:scale-[1.02]">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-primary via-primary/90 to-primary/80 text-primary-foreground shadow-md group-hover:shadow-primary/20 transition-all">
-            <Zap className="h-5 w-5 transition-transform group-hover:scale-110" />
+          <div className="relative flex h-11 w-11 items-center justify-center rounded-full ring-2 ring-amber-500/30 overflow-hidden shadow-md group-hover:ring-amber-500/60 group-hover:shadow-lg transition-all bg-card shrink-0">
+            <img
+              src="/logo.png"
+              alt="Z-Electronics Logo"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+            />
           </div>
           <div className="flex flex-col">
             <span className="text-xl font-bold tracking-tight text-foreground leading-none">
@@ -114,13 +116,6 @@ export function Navbar() {
           >
             <ShoppingCart className="h-3.5 w-3.5" />
             Project Cart
-          </Link>
-          <Link
-            href="/admin"
-            className="flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-foreground/80 hover:text-foreground hover:bg-foreground/5 transition-all"
-          >
-            <Shield className="h-3.5 w-3.5" />
-            Admin Portal
           </Link>
           <a
             href="https://chat.whatsapp.com/DjbAyUOmEgN67QDo0pPcGM"
@@ -166,14 +161,6 @@ export function Navbar() {
                   {cartCount}
                 </Badge>
               )}
-            </Button>
-          </Link>
-
-          {/* Admin shortcut button */}
-          <Link href="/admin">
-            <Button size="sm" className="h-9 gap-1.5 px-3.5 rounded-full font-semibold text-xs shadow-sm transition-all hover:shadow-md active:scale-95">
-              <Shield className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Admin</span>
             </Button>
           </Link>
         </div>

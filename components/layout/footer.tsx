@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Zap, Phone, User, MessageSquare, ShieldCheck, Truck, Cpu, Clock } from "lucide-react";
+import { Phone, User, MessageSquare, ShieldCheck, Truck, Cpu, Clock } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export function Footer() {
@@ -7,7 +7,7 @@ export function Footer() {
 
   return (
     <footer className="border-t border-border/60 bg-gradient-to-b from-muted/20 to-muted/60">
-      {/* ── Highlighted Contact & Community Banner ───────────────── */}
+      {/* -- Highlighted Contact & Community Banner ----------------- */}
       <div className="border-b border-border/50 bg-primary/5 py-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 rounded-2xl bg-card p-6 shadow-sm border border-border">
@@ -37,14 +37,18 @@ export function Footer() {
         </div>
       </div>
 
-      {/* ── Main Footer Info ────────────────────────────────────── */}
+      {/* -- Main Footer Info -------------------------------------- */}
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="space-y-4">
-            <Link href="/" className="group inline-flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Zap className="h-5 w-5" />
+            <Link href="/" className="group inline-flex items-center gap-3">
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-full ring-2 ring-amber-500/30 overflow-hidden shadow-md group-hover:ring-amber-500/60 transition-all bg-card shrink-0">
+                <img
+                  src="/logo.png"
+                  alt="Z-Electronics Logo"
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                />
               </div>
               <span className="text-lg font-bold tracking-tight">
                 Z-<span className="text-primary">Electronics</span>
@@ -135,14 +139,6 @@ export function Footer() {
                   Checkout & Invoice
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/admin"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  Admin Portal
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -168,7 +164,7 @@ export function Footer() {
 
         <Separator className="my-8 opacity-50" />
 
-        {/* ── Bottom Bar ────────────────────────────────────────── */}
+        {/* -- Bottom Bar ------------------------------------------ */}
         <div className="flex flex-col items-center justify-between gap-3 text-xs text-muted-foreground sm:flex-row">
           <p>&copy; {year} Z-Electronics. All rights reserved. Managed by Sujith.</p>
           <div className="flex items-center gap-4">

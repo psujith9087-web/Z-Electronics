@@ -108,8 +108,19 @@ export default function CartPage() {
                 >
                   {/* Component Info */}
                   <div className="col-span-6 flex items-start gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
-                      <Cpu className="h-6 w-6" />
+                    <div className="relative h-14 w-14 rounded-xl border border-border/70 bg-muted/40 overflow-hidden shrink-0 mt-0.5 shadow-sm flex items-center justify-center">
+                      {component.image_url ? (
+                        <img
+                          src={component.image_url}
+                          alt={component.name}
+                          className="h-full w-full object-cover transition-transform hover:scale-110 duration-300"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <Cpu className="h-6 w-6 text-primary" />
+                      )}
                     </div>
                     <div>
                       <h3 className="font-bold text-foreground text-sm sm:text-base leading-snug">

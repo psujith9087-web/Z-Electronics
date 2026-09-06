@@ -29,7 +29,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* ── Metric Summary Cards ───────────────────────────────────── */}
+      {/* -- Metric Summary Cards ------------------------------------- */}
       <div>
         <h1 className="text-2xl font-black tracking-tight text-foreground sm:text-3xl">
           Dashboard Overview
@@ -141,7 +141,7 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* ── Main Operations Tabs (Inventory & Orders) ─────────────── */}
+      {/* -- Main Operations Tabs (Inventory & Orders) --------------- */}
       <Tabs defaultValue="inventory" className="space-y-6">
         <TabsList className="bg-muted p-1 rounded-xl h-12 inline-flex">
           <TabsTrigger

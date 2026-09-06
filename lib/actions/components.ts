@@ -36,6 +36,8 @@ export async function createComponent(formData: FormData): Promise<{ success: bo
     const price = parseFloat(formData.get("price") as string);
     const stock_quantity = parseInt(formData.get("stock_quantity") as string, 10);
 
+    const image_url = ((formData.get("image_url") as string) || "").trim();
+
     if (!name || isNaN(price) || isNaN(stock_quantity)) {
       return { success: false, error: "Name, valid price, and stock quantity are required." };
     }
@@ -47,6 +49,7 @@ export async function createComponent(formData: FormData): Promise<{ success: bo
         description,
         price,
         stock_quantity,
+        image_url,
         created_at: new Date().toISOString(),
       };
       MOCK_COMPONENTS.unshift(newMock);
@@ -56,18 +59,31 @@ export async function createComponent(formData: FormData): Promise<{ success: bo
     }
 
     const supabase = await createClient();
-    const { data, error } = await supabase
+    const payload: Record<string, any> = {
+      name,
+      description,
+      price,
+      stock_quantity,
+      image_url,
+    };
+
+    let { data, error } = await supabase
       .from("components")
-      .insert([
-        {
-          name,
-          description,
-          price,
-          stock_quantity,
-        },
-      ])
+      .insert([payload])
       .select()
       .single();
+
+    // If table doesn't have image_url column yet, fallback gracefully
+    if (error && (error.message.includes("image_url") || error.code === "PGRST204")) {
+      delete payload.image_url;
+      const retry = await supabase
+        .from("components")
+        .insert([payload])
+        .select()
+        .single();
+      data = retry.data;
+      error = retry.error;
+    }
 
     if (error) {
       return { success: false, error: error.message };
@@ -91,6 +107,7 @@ export async function updateComponent(
     const description = (formData.get("description") as string) || "";
     const price = parseFloat(formData.get("price") as string);
     const stock_quantity = parseInt(formData.get("stock_quantity") as string, 10);
+    const image_url = ((formData.get("image_url") as string) || "").trim();
 
     if (!name || isNaN(price) || isNaN(stock_quantity)) {
       return { success: false, error: "Invalid data provided." };
@@ -105,6 +122,7 @@ export async function updateComponent(
           description,
           price,
           stock_quantity,
+          image_url,
         };
       }
       revalidatePath("/");
@@ -113,17 +131,33 @@ export async function updateComponent(
     }
 
     const supabase = await createClient();
-    const { data, error } = await supabase
+    const payload: Record<string, any> = {
+      name,
+      description,
+      price,
+      stock_quantity,
+      image_url,
+    };
+
+    let { data, error } = await supabase
       .from("components")
-      .update({
-        name,
-        description,
-        price,
-        stock_quantity,
-      })
+      .update(payload)
       .eq("id", id)
       .select()
       .single();
+
+    // If table doesn't have image_url column yet, fallback gracefully
+    if (error && (error.message.includes("image_url") || error.code === "PGRST204")) {
+      delete payload.image_url;
+      const retry = await supabase
+        .from("components")
+        .update(payload)
+        .eq("id", id)
+        .select()
+        .single();
+      data = retry.data;
+      error = retry.error;
+    }
 
     if (error) {
       return { success: false, error: error.message };

@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
-  Zap,
+  Cpu,
   CheckCircle2,
   Printer,
   MessageSquare,
@@ -76,7 +76,7 @@ export default function CheckoutPage() {
     );
   }
 
-  // ─── VISUAL BILL / INVOICE SCREEN ──────────────────────────────────────────
+  // --- VISUAL BILL / INVOICE SCREEN ------------------------------------------
   if (confirmedOrder) {
     const invoiceDate = new Date(confirmedOrder.created_at || Date.now()).toLocaleString("en-IN", {
       dateStyle: "medium",
@@ -123,7 +123,7 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        {/* ── Visual Invoice Container ──────────────────────────────────── */}
+        {/* -- Visual Invoice Container ------------------------------------ */}
         <div className="bg-card border-2 border-border/80 rounded-3xl p-6 sm:p-10 shadow-xl overflow-hidden print:border-none print:shadow-none print:p-0">
           {/* Top Success Banner (hidden in print) */}
           <div className="print:hidden mb-8 flex items-center gap-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 p-4 text-emerald-800 dark:text-emerald-300">
@@ -139,13 +139,22 @@ export default function CheckoutPage() {
           {/* Invoice Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 border-b pb-8">
             <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                  <Zap className="h-5 w-5" />
+              <div className="flex items-center gap-3">
+                <div className="relative flex h-12 w-12 items-center justify-center rounded-full ring-2 ring-amber-500/40 overflow-hidden shadow-md bg-card shrink-0">
+                  <img
+                    src="/logo.png"
+                    alt="Z-Electronics Logo"
+                    className="h-full w-full object-cover"
+                  />
                 </div>
-                <span className="text-2xl font-black tracking-tight text-foreground">
-                  Z-<span className="text-primary">ELECTRONICS</span>
-                </span>
+                <div>
+                  <span className="text-2xl font-black tracking-tight text-foreground block leading-none">
+                    Z-<span className="text-primary">ELECTRONICS</span>
+                  </span>
+                  <span className="text-[10px] tracking-wider uppercase font-semibold text-muted-foreground mt-0.5 block">
+                    PROJECT BASED ELECTRONICS
+                  </span>
+                </div>
               </div>
               <p className="text-xs text-muted-foreground">
                 Premier Electronic Components & Hardware Supply
@@ -239,7 +248,19 @@ export default function CheckoutPage() {
                             {index + 1}
                           </td>
                           <td className="py-3.5 px-3 font-semibold text-foreground">
-                            {itemName}
+                            <div className="flex items-center gap-2.5">
+                              {item.components?.image_url ? (
+                                <img
+                                  src={item.components.image_url}
+                                  alt={itemName}
+                                  className="h-7 w-7 rounded-lg object-cover border border-border/70 shrink-0"
+                                  onError={(e) => {
+                                    (e.currentTarget as HTMLElement).style.display = "none";
+                                  }}
+                                />
+                              ) : null}
+                              <span>{itemName}</span>
+                            </div>
                           </td>
                           <td className="py-3.5 px-3 text-right text-muted-foreground">
                             {formatPrice(unitPrice)}
@@ -329,7 +350,7 @@ export default function CheckoutPage() {
     );
   }
 
-  // ─── CHECKOUT FORM SCREEN ──────────────────────────────────────────────────
+  // --- CHECKOUT FORM SCREEN --------------------------------------------------
   const cartSubtotal = totalPrice();
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
@@ -503,13 +524,29 @@ export default function CheckoutPage() {
             <div className="space-y-3 max-h-72 overflow-y-auto pr-1 divide-y divide-border/60">
               {items.map(({ component, quantity }) => (
                 <div key={component.id} className="pt-3 first:pt-0 flex items-center justify-between text-sm">
-                  <div className="pr-3">
-                    <p className="font-semibold text-foreground leading-snug line-clamp-1">
-                      {component.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Qty: {quantity} × {formatPrice(component.price)}
-                    </p>
+                  <div className="flex items-center gap-2.5 pr-3 overflow-hidden">
+                    <div className="h-9 w-9 rounded-lg border border-border/70 bg-muted/40 overflow-hidden shrink-0 flex items-center justify-center">
+                      {component.image_url ? (
+                        <img
+                          src={component.image_url}
+                          alt={component.name}
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = "none";
+                          }}
+                        />
+                      ) : (
+                        <Cpu className="h-4 w-4 text-primary" />
+                      )}
+                    </div>
+                    <div className="overflow-hidden">
+                      <p className="font-semibold text-foreground leading-snug line-clamp-1">
+                        {component.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Qty: {quantity} × {formatPrice(component.price)}
+                      </p>
+                    </div>
                   </div>
                   <span className="font-bold text-foreground shrink-0">
                     {formatPrice(Number(component.price) * quantity)}

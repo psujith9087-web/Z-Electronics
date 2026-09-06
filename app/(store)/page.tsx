@@ -11,10 +11,10 @@ export default async function HomePage() {
 
   return (
     <main className="flex flex-col min-h-screen">
-      {/* ── 1. Hero Section ────────────────────────────────────────── */}
+      {/* -- 1. Hero Section ------------------------------------------ */}
       <HeroSection />
 
-      {/* ── 2. Value Proposition Stats Bar ─────────────────────────── */}
+      {/* -- 2. Value Proposition Stats Bar --------------------------- */}
       <section className="relative z-10 -mt-8 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-5xl rounded-2xl border border-border bg-card/90 p-4 sm:p-6 shadow-xl backdrop-blur-md">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 divide-y md:divide-y-0 md:divide-x divide-border/60">
@@ -42,10 +42,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── 3. Component Catalog Grid ─────────────────────────────── */}
+      {/* -- 3. Component Catalog Grid ------------------------------- */}
       <ComponentCatalog components={components} />
 
-      {/* ── 4. Custom Project CTA ─────────────────────────────────── */}
+      {/* -- 4. Custom Project CTA ----------------------------------- */}
       <ProjectCTA />
     </main>
   );
