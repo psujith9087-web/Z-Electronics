@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Phone, User, MessageSquare, ShieldCheck, Truck, Cpu, Clock } from "lucide-react";
+import { Phone, User, MessageSquare, ShieldCheck, Truck, Cpu, Clock, Shield } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export function Footer() {
@@ -155,6 +155,15 @@ export function Footer() {
                   Checkout & Invoice
                 </Link>
               </li>
+              <li className="pt-1">
+                <Link
+                  href="/admin"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary/80 hover:text-primary transition-colors"
+                >
+                  <Shield className="h-3 w-3" />
+                  <span>Admin Portal</span>
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -184,6 +193,14 @@ export function Footer() {
         <div className="flex flex-col items-center justify-between gap-3 text-xs text-muted-foreground sm:flex-row">
           <p>&copy; {year} Z-Electronics. All rights reserved. Managed by Sujith.</p>
           <div className="flex items-center gap-4">
+            <Link
+              href="/admin"
+              className="hover:text-primary transition-colors font-medium flex items-center gap-1"
+            >
+              <Shield className="h-3 w-3" />
+              <span>Admin Portal</span>
+            </Link>
+            <span>•</span>
             <span>Customer Support: 8072726924</span>
             <span>•</span>
             <a
