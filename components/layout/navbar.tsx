@@ -14,7 +14,6 @@ import {
   Trophy,
   Menu,
   X,
-  Sparkles,
   Shield,
   ArrowRight,
 } from "lucide-react";
@@ -60,13 +59,13 @@ export function Navbar() {
     <header
       className={`sticky top-0 z-40 w-full transition-all duration-300 ${
         isScrolled
-          ? "border-b border-border/80 bg-background/90 shadow-[0_4px_20px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] backdrop-blur-2xl"
-          : "border-b border-border/40 bg-background/75 backdrop-blur-xl"
+          ? "border-b border-border/80 bg-background/95 shadow-[0_4px_20px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] backdrop-blur-2xl"
+          : "border-b border-border/40 bg-background/80 backdrop-blur-xl"
       }`}
     >
-      {/* Top micro bar with contact info */}
-      <div className="border-b border-border/30 bg-muted/30 px-3 sm:px-6 lg:px-8 py-1.5 text-xs text-muted-foreground hidden md:block">
-        <div className="mx-auto max-w-7xl flex items-center justify-between">
+      {/* Top Micro-Bar: Edge-to-Edge with Consistent Padding */}
+      <div className="border-b border-border/30 bg-muted/30 px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 py-1.5 text-xs text-muted-foreground hidden md:block">
+        <div className="w-full flex items-center justify-between">
           <div className="flex items-center gap-3 xl:gap-4">
             <span className="flex items-center gap-1.5 font-bold text-xs whitespace-nowrap">
               <span className="relative flex h-2 w-2 shrink-0">
@@ -76,8 +75,8 @@ export function Navbar() {
               Official Distribution: <strong className="text-foreground font-extrabold">Z-Electronics</strong>
             </span>
             <span className="text-muted-foreground/50">•</span>
-            <span className="text-muted-foreground font-medium text-xs whitespace-nowrap hidden lg:inline">QC Verified Hardware</span>
-            <span className="text-muted-foreground/50 hidden lg:inline">•</span>
+            <span className="text-muted-foreground font-medium text-xs whitespace-nowrap">QC Verified Hardware</span>
+            <span className="text-muted-foreground/50">•</span>
             <a
               href="tel:8072726924"
               className="flex items-center gap-1.5 hover:text-foreground transition-all duration-150 active:scale-95 font-semibold text-xs whitespace-nowrap"
@@ -100,25 +99,10 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Main Navbar */}
-      <div className="mx-auto flex h-16 sm:h-18 max-w-7xl items-center justify-between gap-2 xl:gap-4 px-3 sm:px-6 lg:px-8">
-        {/* Left Side: Mobile Menu Button + Brand Logo */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* Mobile Hamburger Toggle */}
-          <button
-            type="button"
-            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-            className="lg:hidden flex items-center justify-center h-9 w-9 rounded-xl border border-border/80 bg-background/80 text-foreground hover:bg-muted active:scale-90 transition-all shrink-0 cursor-pointer"
-            aria-label="Toggle mobile menu"
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </button>
-
-          {/* Brand */}
+      {/* Main Navbar: Full Width Edge-to-Edge with Elegant Left/Center/Right Distribution */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 flex h-16 sm:h-18 items-center justify-between gap-3 sm:gap-4">
+        {/* Left Side: Brand Logo (Anchored to Left Edge) */}
+        <div className="flex items-center shrink-0">
           <Link
             href="/"
             className="group flex items-center gap-2.5 sm:gap-3 shrink-0 whitespace-nowrap transition-all duration-200 hover:scale-[1.02] active:scale-[0.97]"
@@ -141,68 +125,62 @@ export function Navbar() {
           </Link>
         </div>
 
-        {/* Center navigation: Responsive, never wraps text, fits all laptop widths */}
-        <nav className="hidden lg:flex items-center gap-1 xl:gap-2 shrink min-w-0">
-          <Link
-            href="/shop"
-            className="flex items-center gap-1.5 rounded-full px-3 xl:px-4 py-1.5 text-xs xl:text-sm font-bold whitespace-nowrap text-foreground/85 hover:text-foreground hover:bg-foreground/5 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-1 active:scale-95 cursor-pointer shrink-0"
-          >
-            <Layers className="h-4 w-4 text-primary shrink-0" />
-            <span>Components</span>
-          </Link>
-          <Link
-            href="/legacy"
-            className="flex items-center gap-1.5 rounded-full px-3 xl:px-4 py-1.5 text-xs xl:text-sm font-bold whitespace-nowrap text-foreground/85 hover:text-foreground hover:bg-foreground/5 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-1 active:scale-95 cursor-pointer shrink-0"
-          >
-            <Trophy className="h-4 w-4 text-amber-500 shrink-0" />
-            <span>
-              <span className="xl:hidden">Projects</span>
-              <span className="hidden xl:inline">Robotics & Projects</span>
-            </span>
-          </Link>
-          <Link
-            href="/orders"
-            className="flex items-center gap-1.5 rounded-full px-3 xl:px-4 py-1.5 text-xs xl:text-sm font-bold whitespace-nowrap text-foreground/85 hover:text-foreground hover:bg-foreground/5 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-1 active:scale-95 cursor-pointer shrink-0"
-          >
-            <span className="relative flex h-2 w-2 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500" />
-            </span>
-            <Package className="h-4 w-4 text-sky-500 shrink-0" />
-            <span>
-              <span className="xl:hidden">Tracking</span>
-              <span className="hidden xl:inline">Live Tracking</span>
-            </span>
-          </Link>
-          <a
-            href="/#custom-bom"
-            className="flex items-center gap-1.5 rounded-full px-3 xl:px-4 py-1.5 text-xs xl:text-sm font-bold whitespace-nowrap text-foreground/85 hover:text-foreground hover:bg-foreground/5 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-1 active:scale-95 cursor-pointer shrink-0"
-          >
-            <span className="text-primary font-mono text-[11px] font-black bg-primary/10 px-1 py-0.5 rounded shrink-0">BOM</span>
-            <span>
-              <span className="xl:hidden">Sourcing</span>
-              <span className="hidden xl:inline">Custom Sourcing</span>
-            </span>
-          </a>
+        {/* Center: Store Navigation Dock (Centered, with ample breathing room, active >= 1200px) */}
+        <div className="hidden xl:flex items-center justify-center flex-1 mx-2 2xl:mx-6 min-w-0">
+          <nav className="flex items-center gap-1 2xl:gap-2 rounded-full bg-muted/40 p-1.5 border border-border/50 shadow-xs backdrop-blur-md">
+            <Link
+              href="/shop"
+              className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs 2xl:text-sm font-bold whitespace-nowrap text-foreground/85 hover:text-foreground hover:bg-card/80 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-1 active:scale-95 cursor-pointer"
+            >
+              <Layers className="h-4 w-4 text-primary shrink-0" />
+              <span>Components</span>
+            </Link>
+            <Link
+              href="/legacy"
+              className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs 2xl:text-sm font-bold whitespace-nowrap text-foreground/85 hover:text-foreground hover:bg-card/80 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-1 active:scale-95 cursor-pointer"
+            >
+              <Trophy className="h-4 w-4 text-amber-500 shrink-0" />
+              <span>Robotics & Projects</span>
+            </Link>
+            <Link
+              href="/orders"
+              className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs 2xl:text-sm font-bold whitespace-nowrap text-foreground/85 hover:text-foreground hover:bg-card/80 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-1 active:scale-95 cursor-pointer"
+            >
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500" />
+              </span>
+              <Package className="h-4 w-4 text-sky-500 shrink-0" />
+              <span>Live Tracking</span>
+            </Link>
+            <a
+              href="/#custom-bom"
+              className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs 2xl:text-sm font-bold whitespace-nowrap text-foreground/85 hover:text-foreground hover:bg-card/80 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-1 active:scale-95 cursor-pointer"
+            >
+              <span className="text-primary font-mono text-[10px] 2xl:text-[11px] font-black bg-primary/10 px-1.5 py-0.5 rounded shrink-0">BOM</span>
+              <span>Custom Sourcing</span>
+            </a>
+          </nav>
+        </div>
 
+        {/* Right Side: Google Support, Account, Theme, Cart, & Mobile Menu (Anchored to Right Edge) */}
+        <div className="flex items-center gap-2 sm:gap-2.5 xl:gap-3 shrink-0">
           {/* Google-Style Dynamic Color Changing Button */}
           <a
             href="https://chat.whatsapp.com/DjbAyUOmEgN67QDo0pPcGM"
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-google-animated flex items-center gap-1.5 xl:gap-2 rounded-full px-3.5 xl:px-4.5 py-1.5 xl:py-2 text-xs xl:text-sm font-bold whitespace-nowrap text-foreground bg-card/85 hover:bg-card border border-transparent transition-all duration-150 hover:-translate-y-0.5 active:translate-y-1 active:scale-95 ml-1 shadow-xs hover:shadow-md cursor-pointer shrink-0"
+            className="btn-google-animated hidden md:inline-flex items-center gap-2 rounded-full px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold whitespace-nowrap text-foreground bg-card/90 hover:bg-card border border-transparent transition-all duration-150 hover:-translate-y-0.5 active:translate-y-1 active:scale-95 shadow-xs hover:shadow-md cursor-pointer shrink-0"
+            title="WhatsApp Engineering Support"
           >
             <MessageSquare className="h-4 w-4 text-[#34A853] shrink-0" />
             <span className="bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] bg-clip-text text-transparent font-black">
-              <span className="xl:hidden">Support</span>
-              <span className="hidden xl:inline">Engineering Support</span>
+              <span className="xl:hidden 2xl:inline">Engineering Support</span>
+              <span className="hidden xl:inline 2xl:hidden">Support</span>
             </span>
             <span className="flex h-2 w-2 rounded-full bg-[#34A853] shadow-[0_0_6px_#34A853] animate-pulse shrink-0" />
           </a>
-        </nav>
 
-        {/* Right Actions: Always fully visible, never pushed off-screen */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           {/* Customer Account & Order Portal */}
           <CustomerAccountBtn />
 
@@ -212,7 +190,7 @@ export function Navbar() {
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="h-9 w-9 sm:h-10 sm:w-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-1 active:scale-90 active:rotate-45 shrink-0"
+              className="h-10 w-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/5 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-1 active:scale-90 active:rotate-45 shrink-0"
               aria-label="Toggle theme"
             >
               {theme === "dark" ? (
@@ -228,7 +206,7 @@ export function Navbar() {
             <Button
               variant="outline"
               size="sm"
-              className="relative h-9 sm:h-10 gap-1.5 sm:gap-2 px-3 sm:px-4 rounded-full border-border/80 font-black text-xs sm:text-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md active:translate-y-1 active:scale-[0.93] shrink-0 whitespace-nowrap"
+              className="relative h-10 gap-2 px-3 sm:px-4 rounded-full border-border/80 font-black text-xs sm:text-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md active:translate-y-1 active:scale-[0.93] shrink-0 whitespace-nowrap"
             >
               <ShoppingCart className="h-4 w-4 text-primary shrink-0" />
               <span className="hidden sm:inline">My Cart</span>
@@ -239,24 +217,38 @@ export function Navbar() {
               )}
             </Button>
           </Link>
+
+          {/* Mobile/Tablet Drawer Toggle (Cleanly placed on far right on screens < 1200px) */}
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+            className="xl:hidden flex items-center justify-center h-10 w-10 rounded-xl border border-border/70 bg-card text-foreground hover:bg-muted active:scale-90 transition-all shrink-0 cursor-pointer shadow-xs"
+            aria-label="Toggle navigation menu"
+          >
+            {isMobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Mobile Drawer Menu (Slides down on phones/tablets) */}
+      {/* Mobile & Laptop Drawer Menu (Opens smoothly on screens < 1200px) */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden border-b border-border/80 bg-background/95 backdrop-blur-2xl px-4 py-6 shadow-2xl animate-in slide-in-from-top-4 duration-200">
-          <div className="flex flex-col space-y-3 max-w-md mx-auto">
+        <div className="xl:hidden border-b border-border/80 bg-background/95 backdrop-blur-2xl px-4 py-6 shadow-2xl animate-in slide-in-from-top-4 duration-200">
+          <div className="flex flex-col space-y-3 max-w-lg mx-auto">
             <Link
               href="/shop"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center justify-between p-3 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-all active:scale-[0.98]"
+              className="flex items-center justify-between p-3.5 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-primary/10 text-primary">
                   <Layers className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="leading-none">Components Catalog</p>
+                  <p className="leading-none text-base font-extrabold">Components Catalog</p>
                   <p className="text-xs font-normal text-muted-foreground mt-1">Browse 500+ microcontrollers, sensors & ICs</p>
                 </div>
               </div>
@@ -266,14 +258,14 @@ export function Navbar() {
             <Link
               href="/legacy"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center justify-between p-3 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-all active:scale-[0.98]"
+              className="flex items-center justify-between p-3.5 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500">
                   <Trophy className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="leading-none">Robotics & Project Builds</p>
+                  <p className="leading-none text-base font-extrabold">Robotics & Project Builds</p>
                   <p className="text-xs font-normal text-muted-foreground mt-1">Verified college projects and custom kits</p>
                 </div>
               </div>
@@ -283,14 +275,14 @@ export function Navbar() {
             <Link
               href="/orders"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center justify-between p-3 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-all active:scale-[0.98]"
+              className="flex items-center justify-between p-3.5 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-sky-500/10 text-sky-500">
                   <Package className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="leading-none">Track Active Order</p>
+                  <p className="leading-none text-base font-extrabold">Track Active Order</p>
                   <p className="text-xs font-normal text-muted-foreground mt-1">Live tracking timeline and invoice</p>
                 </div>
               </div>
@@ -300,14 +292,14 @@ export function Navbar() {
             <a
               href="/#custom-bom"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center justify-between p-3 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-all active:scale-[0.98]"
+              className="flex items-center justify-between p-3.5 rounded-xl hover:bg-muted font-bold text-sm text-foreground transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500 font-mono text-xs font-black">
                   BOM
                 </div>
                 <div>
-                  <p className="leading-none">Custom Hardware & BOM Sourcing</p>
+                  <p className="leading-none text-base font-extrabold">Custom Hardware & BOM Sourcing</p>
                   <p className="text-xs font-normal text-muted-foreground mt-1">Direct quotes for bulk university orders</p>
                 </div>
               </div>

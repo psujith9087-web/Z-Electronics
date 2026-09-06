@@ -70,13 +70,13 @@ export function CustomerAccountBtn() {
           <Button
             variant="outline"
             size="sm"
-            className="h-10 gap-2 px-3.5 rounded-full border-primary/30 bg-primary/5 hover:bg-primary/10 text-sm font-bold text-foreground transition-all"
+            className="h-10 gap-2 px-3 sm:px-3.5 rounded-full border-primary/30 bg-primary/5 hover:bg-primary/10 text-xs sm:text-sm font-bold text-foreground transition-all shrink-0 whitespace-nowrap cursor-pointer"
           >
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-black">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-black shrink-0">
               {displayName.charAt(0).toUpperCase()}
             </div>
-            <span className="max-w-[100px] truncate">{displayName}</span>
-            <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+            <span className="max-w-[80px] sm:max-w-[100px] truncate">{displayName}</span>
+            <ChevronDown className="h-3.5 w-3.5 opacity-60 shrink-0" />
           </Button>
         }
       />
