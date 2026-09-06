@@ -7,6 +7,7 @@ import {
   createProject,
   updateProject,
   deleteProject,
+  clearAllProjects,
 } from "@/lib/actions/projects";
 import { compressImageFile } from "@/lib/image-upload";
 import { Card, CardContent } from "@/components/ui/card";
@@ -45,6 +46,7 @@ import {
   Calendar,
   Building,
   Sparkles,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -93,10 +95,15 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
   const editFileInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingEditPhoto, setIsUploadingEditPhoto] = useState(false);
 
-  // Delete Dialog State
+  // Delete Single Dialog State
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingTitle, setDeletingTitle] = useState<string>("");
+
+  // Delete All Dialog State
+  const [isClearAllOpen, setIsClearAllOpen] = useState(false);
+  const [isSubmittingClearAll, setIsSubmittingClearAll] = useState(false);
 
   // Handle Photo Upload via Files
   const handleAddPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,13 +112,13 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
 
     try {
       setIsUploadingAddPhoto(true);
-      toast.loading("Compressing and preparing photograph...", { id: "photo-upload" });
-      const compressedDataUrl = await compressImageFile(file, 1024, 1024, 0.82);
+      toast.loading("Optimizing photograph for database...", { id: "photo-upload" });
+      const compressedDataUrl = await compressImageFile(file, 720, 720, 0.72);
       setAddImageUrl(compressedDataUrl);
-      toast.success("Photograph ready!", { id: "photo-upload" });
+      toast.success("Photograph ready to upload!", { id: "photo-upload" });
     } catch (err) {
       console.error(err);
-      toast.error("Failed to load photograph. Please try another image.", { id: "photo-upload" });
+      toast.error("Failed to load photograph. Please choose another image.", { id: "photo-upload" });
     } finally {
       setIsUploadingAddPhoto(false);
       if (addFileInputRef.current) addFileInputRef.current.value = "";
@@ -124,8 +131,8 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
 
     try {
       setIsUploadingEditPhoto(true);
-      toast.loading("Compressing and preparing photograph...", { id: "photo-edit-upload" });
-      const compressedDataUrl = await compressImageFile(file, 1024, 1024, 0.82);
+      toast.loading("Optimizing photograph for database...", { id: "photo-edit-upload" });
+      const compressedDataUrl = await compressImageFile(file, 720, 720, 0.72);
       setEditImageUrl(compressedDataUrl);
       toast.success("Photograph updated!", { id: "photo-edit-upload" });
     } catch (err) {
@@ -151,6 +158,7 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
 
     try {
       setIsSubmittingAdd(true);
+      toast.loading("Saving project to database...", { id: "saving-project" });
       const res = await createProject({
         title: addTitle,
         description: addDescription,
@@ -166,7 +174,7 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
       }
 
       setProjects((prev) => [res.data!, ...prev]);
-      toast.success("Project added to Z-Electronics Legacy showcase!");
+      toast.success("Project saved to database and live on customer portal!", { id: "saving-project" });
       setIsAddOpen(false);
 
       // Reset form
@@ -178,7 +186,7 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
       setAddImageUrl("");
       setAddFeatured(false);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error creating project.");
+      toast.error(err instanceof Error ? err.message : "Error creating project.", { id: "saving-project" });
     } finally {
       setIsSubmittingAdd(false);
     }
@@ -208,6 +216,7 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
 
     try {
       setIsSubmittingEdit(true);
+      toast.loading("Updating project in database...", { id: "updating-project" });
       const res = await updateProject(editingProject.id, {
         title: editTitle,
         description: editDescription,
@@ -216,42 +225,72 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
         clientOrInstitution: editClient,
         imageUrl: editImageUrl,
         featured: editFeatured,
+        oldTitle: editingProject.title,
       });
 
       if (!res.success || !res.data) {
         throw new Error(res.error || "Failed to update project");
       }
 
-      setProjects((prev) => prev.map((p) => (p.id === editingProject.id ? res.data! : p)));
-      toast.success("Project updated successfully!");
+      setProjects((prev) =>
+        prev.map((p) => (p.id === editingProject.id ? res.data! : p))
+      );
+      toast.success("Project updated in database successfully!", { id: "updating-project" });
       setIsEditOpen(false);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error updating project.");
+      toast.error(err instanceof Error ? err.message : "Error updating project.", { id: "updating-project" });
     } finally {
       setIsSubmittingEdit(false);
     }
   };
 
-  // Submit Delete Project
+  // Submit Delete Single Project
   const handleDeleteConfirm = async () => {
     if (!deletingId) return;
 
     try {
       setIsSubmittingDelete(true);
-      const res = await deleteProject(deletingId);
+      toast.loading("Removing project from database...", { id: "deleting-project" });
+      const res = await deleteProject(deletingId, deletingTitle);
 
       if (!res.success) {
         throw new Error(res.error || "Failed to delete project");
       }
 
       setProjects((prev) => prev.filter((p) => p.id !== deletingId));
-      toast.success("Project removed from showcase.");
+      toast.success("Project deleted from database.", { id: "deleting-project" });
       setIsDeleteOpen(false);
       setDeletingId(null);
+      setDeletingTitle("");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error deleting project.");
+      toast.error(err instanceof Error ? err.message : "Error deleting project.", { id: "deleting-project" });
     } finally {
       setIsSubmittingDelete(false);
+    }
+  };
+
+  // Submit Delete All Projects
+  const handleClearAllConfirm = async () => {
+    try {
+      setIsSubmittingClearAll(true);
+      toast.loading("Clearing all projects from database...", { id: "clearing-all" });
+      const res = await clearAllProjects();
+
+      if (!res.success) {
+        throw new Error(res.error || "Failed to clear projects");
+      }
+
+      setProjects([]);
+      toast.success("All projects deleted! You can now start fresh with your own uploads.", {
+        id: "clearing-all",
+      });
+      setIsClearAllOpen(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error clearing projects.", {
+        id: "clearing-all",
+      });
+    } finally {
+      setIsSubmittingClearAll(false);
     }
   };
 
@@ -260,7 +299,8 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
     const matchesSearch =
       p.title.toLowerCase().includes(search.toLowerCase()) ||
       p.description.toLowerCase().includes(search.toLowerCase()) ||
-      (p.clientOrInstitution && p.clientOrInstitution.toLowerCase().includes(search.toLowerCase()));
+      (p.clientOrInstitution &&
+        p.clientOrInstitution.toLowerCase().includes(search.toLowerCase()));
 
     const matchesCategory =
       selectedCategory === "all" || p.category === selectedCategory;
@@ -305,10 +345,21 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          {projects.length > 0 && (
+            <Button
+              variant="outline"
+              onClick={() => setIsClearAllOpen(true)}
+              className="rounded-xl font-semibold gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10 h-10 px-3 text-xs"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span>Delete All (Start Fresh)</span>
+            </Button>
+          )}
+
           <Button
             onClick={() => setIsAddOpen(true)}
-            className="rounded-xl font-semibold gap-2 shadow-sm bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4"
+            className="rounded-xl font-semibold gap-2 shadow-sm bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 text-xs"
           >
             <Plus className="h-4 w-4" />
             <span>Add Project Photo</span>
@@ -372,12 +423,25 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
           <div className="mx-auto h-12 w-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground mb-3">
             <Trophy className="h-6 w-6" />
           </div>
-          <h3 className="font-bold text-foreground text-base">No projects found</h3>
+          <h3 className="font-bold text-foreground text-base">
+            {projects.length === 0 ? "No Projects Yet (Ready for Your Uploads)" : "No projects match your filter"}
+          </h3>
           <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
-            {search || selectedCategory !== "all"
-              ? "Try clearing your search or filter to see all projects."
-              : "Start by clicking 'Add Project Photo' to showcase your first completed order."}
+            {projects.length === 0
+              ? "Click 'Add Project Photo' above to upload your first completed project photograph from your device files."
+              : "Try clearing your search query or selecting 'All' above."}
           </p>
+          {projects.length === 0 && (
+            <div className="mt-4">
+              <Button
+                onClick={() => setIsAddOpen(true)}
+                className="rounded-xl text-xs font-semibold gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Upload First Project</span>
+              </Button>
+            </div>
+          )}
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -455,6 +519,7 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
                   variant="ghost"
                   onClick={() => {
                     setDeletingId(project.id);
+                    setDeletingTitle(project.title);
                     setIsDeleteOpen(true);
                   }}
                   className="h-8 rounded-lg text-xs text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5"
@@ -488,7 +553,6 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
             <div className="space-y-2">
               <Label className="text-xs font-semibold">Project Photograph *</Label>
 
-              {/* Hidden file input */}
               <input
                 type="file"
                 ref={addFileInputRef}
@@ -535,7 +599,7 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
                     <div className="flex flex-col items-center py-2">
                       <Loader2 className="h-6 w-6 text-primary animate-spin mb-2" />
                       <span className="text-xs font-semibold text-muted-foreground">
-                        Compressing photograph...
+                        Optimizing photograph...
                       </span>
                     </div>
                   ) : (
@@ -547,7 +611,7 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
                         Click to select photo from Files / Device
                       </span>
                       <span className="text-[11px] text-muted-foreground mt-0.5">
-                        Supports camera photos, PNG, JPG, WebP (auto-optimized)
+                        Supports camera photos, PNG, JPG, WebP (auto-compressed for database)
                       </span>
                     </>
                   )}
@@ -663,7 +727,7 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
                 className="rounded-xl text-xs font-semibold h-9 px-5 gap-1.5"
               >
                 {isSubmittingAdd && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                <span>Save Project</span>
+                <span>Save to Database</span>
               </Button>
             </DialogFooter>
           </form>
@@ -821,7 +885,7 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
                 className="rounded-xl text-xs font-semibold h-9 px-5 gap-1.5"
               >
                 {isSubmittingEdit && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                <span>Update Project</span>
+                <span>Update in Database</span>
               </Button>
             </DialogFooter>
           </form>
@@ -829,7 +893,7 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
       </Dialog>
 
       {/* ------------------------------------------------------------- */}
-      {/* DELETE CONFIRMATION DIALOG                                    */}
+      {/* DELETE SINGLE CONFIRMATION DIALOG                             */}
       {/* ------------------------------------------------------------- */}
       <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <DialogContent className="max-w-sm rounded-2xl p-6">
@@ -839,7 +903,7 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
               Remove Project?
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground pt-1">
-              Are you sure you want to remove this project from the customer showcase? This action cannot be undone.
+              Are you sure you want to remove &quot;{deletingTitle || "this project"}&quot; from the customer showcase and database?
             </DialogDescription>
           </DialogHeader>
 
@@ -861,6 +925,44 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
             >
               {isSubmittingDelete && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               <span>Yes, Delete</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ------------------------------------------------------------- */}
+      {/* CLEAR ALL PROJECTS CONFIRMATION DIALOG                        */}
+      {/* ------------------------------------------------------------- */}
+      <Dialog open={isClearAllOpen} onOpenChange={setIsClearAllOpen}>
+        <DialogContent className="max-w-sm rounded-2xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-destructive flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Delete All Projects?
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground pt-1">
+              This will permanently remove ALL current showcase projects from your database so you can start completely fresh with your own uploads.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="pt-3 flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsClearAllOpen(false)}
+              className="rounded-xl text-xs h-9"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleClearAllConfirm}
+              disabled={isSubmittingClearAll}
+              className="rounded-xl text-xs font-semibold h-9 gap-1.5"
+            >
+              {isSubmittingClearAll && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              <span>Yes, Delete All</span>
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -27,74 +27,19 @@ export interface ProjectItem {
 
 const PROJECTS_FILE = path.join(process.cwd(), "public", "projects-legacy.json");
 
-const INITIAL_PROJECTS: ProjectItem[] = [
-  {
-    id: "c043b3f2-39e4-45f2-b3ca-d2fb894127c5",
-    title: "Autonomous Quad-Wheel Obstacle Avoidance Rover",
-    category: "Robotics & IoT",
-    description:
-      "Custom engineered 4WD robotics chassis powered by ESP32 microcontrollers, HC-SR04 ultrasonic arrays, and dual L298N high-power motor drivers. Built for collegiate robotics competition with real-time Bluetooth telemetry.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1000&q=80",
-    date: "August 2026",
-    clientOrInstitution: "Engineering TechFest Robotics Team",
-    featured: true,
-    createdAt: "2026-08-15T10:00:00.000Z",
-  },
-  {
-    id: "00f9492b-2e4b-41f2-a311-fc19f2dd9ac4",
-    title: "50-Node Industrial RS-485 Sensor Telemetry Order",
-    category: "Completed Order",
-    description:
-      "Full turnkey component sourcing and batch verification of 50 industrial telemetry units featuring STM32 microcontrollers, optocoupled relays, and precision temperature/humidity sensing modules delivered with zero defect rate.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1000&q=80",
-    date: "July 2026",
-    clientOrInstitution: "Precision Agro-Tech Solutions",
-    featured: true,
-    createdAt: "2026-07-20T10:00:00.000Z",
-  },
-  {
-    id: "81270bf3-a520-4356-992a-33720ceb6290",
-    title: "Custom Drone PDB & High-Amperage ESC Power Harness",
-    category: "Custom Circuit",
-    description:
-      "High-current Power Distribution Board (PDB) designed for carbon-fiber multi-rotor drones, delivering stable 5V/12V dual BEC rails and 60A surge capacity across 4 brushless ESC channels.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=1000&q=80",
-    date: "June 2026",
-    clientOrInstitution: "Aeronautics Research Project",
-    featured: true,
-    createdAt: "2026-06-10T10:00:00.000Z",
-  },
-  {
-    id: "893736ea-bf2d-43c4-a423-7c57e98f4aa5",
-    title: "Z-Electronics 1000+ Hardware Orders Milestone",
-    category: "Milestone",
-    description:
-      "Proud achievement celebrating over 1,000 verified electronics components and development kits supplied directly to aspiring student engineers, hobbyists, and lab makers across the region.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?auto=format&fit=crop&w=1000&q=80",
-    date: "May 2026",
-    clientOrInstitution: "Z-Electronics Foundation",
-    featured: false,
-    createdAt: "2026-05-01T10:00:00.000Z",
-  },
-];
-
 function readLocalProjects(): ProjectItem[] {
   try {
     if (fs.existsSync(PROJECTS_FILE)) {
       const raw = fs.readFileSync(PROJECTS_FILE, "utf8");
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed;
       }
     }
   } catch (err) {
     console.error("Error reading local projects file:", err);
   }
-  return INITIAL_PROJECTS;
+  return [];
 }
 
 function writeLocalProjects(projects: ProjectItem[]): void {
@@ -136,7 +81,7 @@ function parseProjectRow(row: any): ProjectItem | null {
 
 /**
  * Fetch all projects from Supabase database.
- * Falls back to local cache if database is unreachable.
+ * If empty in database, returns [] (never recreates deleted items).
  */
 export async function getProjects(): Promise<ProjectItem[]> {
   try {
@@ -152,17 +97,15 @@ export async function getProjects(): Promise<ProjectItem[]> {
       return readLocalProjects();
     }
 
-    if (data && data.length > 0) {
+    if (data && Array.isArray(data)) {
       const projects: ProjectItem[] = [];
       for (const row of data) {
         const parsed = parseProjectRow(row);
         if (parsed) projects.push(parsed);
       }
 
-      // Sync local cache with database
-      if (projects.length > 0) {
-        writeLocalProjects(projects);
-      }
+      // Sync local cache with current database state
+      writeLocalProjects(projects);
 
       // Sort featured projects to the top, then newest first
       return projects.sort((a, b) => {
@@ -172,57 +115,11 @@ export async function getProjects(): Promise<ProjectItem[]> {
       });
     }
 
-    // If database returned 0 projects, seed initial projects into Supabase
-    return await seedInitialProjectsToDatabase();
+    return readLocalProjects();
   } catch (err) {
     console.error("Unexpected error in getProjects:", err);
     return readLocalProjects();
   }
-}
-
-async function seedInitialProjectsToDatabase(): Promise<ProjectItem[]> {
-  try {
-    const supabase = await createClient();
-    const seeded: ProjectItem[] = [];
-
-    for (const p of INITIAL_PROJECTS) {
-      const payload = JSON.stringify({
-        title: p.title,
-        description: p.description,
-        category: p.category,
-        imageUrl: p.imageUrl,
-        date: p.date,
-        clientOrInstitution: p.clientOrInstitution,
-        featured: p.featured,
-      });
-
-      const { data, error } = await supabase
-        .from("components")
-        .insert({
-          name: `[PROJECT] ${p.title}`,
-          description: `__PROJECT__${payload}`,
-          price: 0,
-          stock_quantity: 0,
-        })
-        .select();
-
-      if (!error && data && data[0]) {
-        seeded.push({
-          ...p,
-          id: data[0].id,
-          createdAt: data[0].created_at,
-        });
-      }
-    }
-
-    if (seeded.length > 0) {
-      writeLocalProjects(seeded);
-      return seeded;
-    }
-  } catch (err) {
-    console.error("Error seeding initial projects:", err);
-  }
-  return INITIAL_PROJECTS;
 }
 
 /**
@@ -298,20 +195,41 @@ export async function createProject(
  */
 export async function updateProject(
   id: string,
-  input: Partial<Omit<ProjectItem, "id" | "createdAt">>
+  input: Partial<Omit<ProjectItem, "id" | "createdAt">> & { oldTitle?: string }
 ): Promise<{ success: boolean; data?: ProjectItem; error?: string }> {
   try {
     const supabase = await createClient();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
+    let targetId = id;
+
+    if (!isUuid) {
+      // Find row by old title or current title
+      const titleToFind = input.oldTitle || input.title;
+      const { data } = await supabase
+        .from("components")
+        .select("id, name, description")
+        .ilike("description", "__PROJECT__%");
+
+      if (data && data.length > 0) {
+        const found = data.find(
+          (r) =>
+            (titleToFind && r.name.toLowerCase().includes(titleToFind.toLowerCase())) ||
+            r.description.includes(id)
+        );
+        if (found) targetId = found.id;
+      }
+    }
 
     // Fetch existing row to merge
-    const { data: existingRow, error: fetchErr } = await supabase
+    const { data: existingRow } = await supabase
       .from("components")
       .select("*")
-      .eq("id", id)
+      .eq("id", targetId)
       .single();
 
     let existingParsed: Partial<ProjectItem> = {};
-    if (!fetchErr && existingRow) {
+    if (existingRow) {
       const parsed = parseProjectRow(existingRow);
       if (parsed) existingParsed = parsed;
     }
@@ -349,7 +267,7 @@ export async function updateProject(
         price: 0,
         stock_quantity: 0,
       })
-      .eq("id", id)
+      .eq("id", targetId)
       .select();
 
     if (updateErr || !updatedData || !updatedData[0]) {
@@ -357,7 +275,7 @@ export async function updateProject(
     }
 
     const updatedProject: ProjectItem = {
-      id,
+      id: targetId,
       title: updatedTitle,
       description: updatedDescription,
       category: updatedCategory,
@@ -370,7 +288,7 @@ export async function updateProject(
 
     // Update local cache
     const current = readLocalProjects();
-    const updatedList = current.map((p) => (p.id === id ? updatedProject : p));
+    const updatedList = current.map((p) => (p.id === id || p.id === targetId ? updatedProject : p));
     writeLocalProjects(updatedList);
 
     revalidatePath("/");
@@ -386,22 +304,43 @@ export async function updateProject(
 }
 
 /**
- * Delete project from Supabase database.
+ * Delete project from Supabase database safely with UUID and legacy ID fallbacks.
  */
 export async function deleteProject(
-  id: string
+  id: string,
+  title?: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const supabase = await createClient();
-    const { error } = await supabase.from("components").delete().eq("id", id);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
-    if (error) {
-      throw new Error(error.message);
+    if (isUuid) {
+      const { error } = await supabase.from("components").delete().eq("id", id);
+      if (error) throw new Error(error.message);
+    } else {
+      // If legacy ID like "proj-1", "proj-2", match by title or description
+      if (title?.trim()) {
+        await supabase
+          .from("components")
+          .delete()
+          .ilike("name", `%${title.trim()}%`);
+      }
+      if (id === "proj-1") {
+        await supabase.from("components").delete().ilike("name", "%Autonomous Quad-Wheel%");
+      } else if (id === "proj-2") {
+        await supabase.from("components").delete().ilike("name", "%50-Node Industrial%");
+      } else if (id === "proj-3") {
+        await supabase.from("components").delete().ilike("name", "%Custom Drone PDB%");
+      } else if (id === "proj-4") {
+        await supabase.from("components").delete().ilike("name", "%1000+ Hardware Orders%");
+      }
     }
 
     // Update local cache
     const current = readLocalProjects();
-    const filtered = current.filter((p) => p.id !== id);
+    const filtered = current.filter(
+      (p) => p.id !== id && (!title || !p.title.toLowerCase().includes(title.toLowerCase()))
+    );
     writeLocalProjects(filtered);
 
     revalidatePath("/");
@@ -412,6 +351,33 @@ export async function deleteProject(
   } catch (err) {
     console.error("Error deleting project from database:", err);
     const message = err instanceof Error ? err.message : "Failed to delete project from database.";
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Delete ALL projects from database to start fresh.
+ */
+export async function clearAllProjects(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("components")
+      .delete()
+      .ilike("description", "__PROJECT__%");
+
+    if (error) throw new Error(error.message);
+
+    writeLocalProjects([]);
+
+    revalidatePath("/");
+    revalidatePath("/legacy");
+    revalidatePath("/admin");
+
+    return { success: true };
+  } catch (err) {
+    console.error("Error clearing all projects from database:", err);
+    const message = err instanceof Error ? err.message : "Failed to clear all projects.";
     return { success: false, error: message };
   }
 }

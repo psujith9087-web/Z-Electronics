@@ -131,89 +131,119 @@ export default function ProjectsShowcase({
         </div>
 
         {/* Projects Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mt-12">
-          {filteredProjects.map((project) => (
-            <div
-              key={project.id}
-              onClick={() => setSelectedProject(project)}
-              className="group cursor-pointer rounded-3xl border border-border/80 bg-card overflow-hidden shadow-sm hover:shadow-2xl hover:border-primary/50 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between"
-            >
-              <div>
-                {/* Photo Container */}
-                <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
-                  <img
-                    src={project.imageUrl}
-                    alt={project.title}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-108"
-                  />
-                  {/* Subtle Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
-
-                  {/* Top Badges */}
-                  <div className="absolute top-3 left-3 flex items-center gap-2">
-                    <Badge
-                      variant="outline"
-                      className={`text-[10px] font-black border backdrop-blur-md px-3 py-1 rounded-full shadow-sm ${getCategoryBadgeClass(
-                        project.category
-                      )}`}
-                    >
-                      {project.category}
-                    </Badge>
-                  </div>
-
-                  {project.featured && (
-                    <div className="absolute top-3 right-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full px-2.5 py-1 text-[10px] font-black shadow-lg flex items-center gap-1">
-                      <Star className="h-3 w-3 fill-white" />
-                      <span>Featured</span>
-                    </div>
-                  )}
-
-                  {/* Quick Expand Icon on Hover */}
-                  <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/70 hover:bg-black/90 text-white p-2 rounded-xl backdrop-blur-md shadow-lg">
-                    <Maximize2 className="h-4 w-4" />
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-5 space-y-3">
-                  <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
-                    {project.date && (
-                      <span className="inline-flex items-center gap-1 font-medium">
-                        <Calendar className="h-3 w-3 text-primary" />
-                        {project.date}
-                      </span>
-                    )}
-                    {project.clientOrInstitution && (
-                      <span className="inline-flex items-center gap-1 font-medium">
-                        <Building className="h-3 w-3 text-amber-500" />
-                        {project.clientOrInstitution}
-                      </span>
-                    )}
-                  </div>
-
-                  <h3 className="font-extrabold text-foreground text-base leading-snug group-hover:text-primary transition-colors">
-                    {project.title}
-                  </h3>
-
-                  <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
-                    {project.description}
-                  </p>
-                </div>
-              </div>
-
-              {/* Card Footer Link */}
-              <div className="p-5 pt-0 mt-2 flex items-center justify-between border-t border-border/40 pt-4 text-xs font-bold text-primary group-hover:text-primary/90">
-                <span className="inline-flex items-center gap-1.5">
-                  <span>View Project Details</span>
-                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                </span>
-                <span className="text-[11px] text-muted-foreground font-normal">
-                  Click to inspect
-                </span>
-              </div>
+        {filteredProjects.length === 0 ? (
+          <div className="mt-12 rounded-3xl border border-dashed border-border/80 bg-card/60 p-12 text-center max-w-xl mx-auto shadow-sm">
+            <div className="mx-auto h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
+              <Trophy className="h-6 w-6 text-amber-500" />
             </div>
-          ))}
-        </div>
+            <h3 className="font-bold text-foreground text-base">New Projects Coming Soon</h3>
+            <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+              We are currently preparing photographs of our latest completed client orders and collegiate robotics builds. Check back soon or contact Sujith directly on WhatsApp for Bill of Materials (BOM) quotations.
+            </p>
+            <div className="mt-5 flex items-center justify-center gap-3">
+              <a
+                href="https://chat.whatsapp.com/DjbAyUOmEgN67QDo0pPcGM"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button size="sm" className="rounded-full text-xs font-semibold gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white">
+                  <MessageSquare className="h-3.5 w-3.5" />
+                  <span>WhatsApp Sujith</span>
+                </Button>
+              </a>
+              <a href="tel:8072726924">
+                <Button size="sm" variant="outline" className="rounded-full text-xs font-semibold gap-1.5 border-border">
+                  <Phone className="h-3.5 w-3.5 text-primary" />
+                  <span>Call 8072726924</span>
+                </Button>
+              </a>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mt-12">
+            {filteredProjects.map((project) => (
+              <div
+                key={project.id}
+                onClick={() => setSelectedProject(project)}
+                className="group cursor-pointer rounded-3xl border border-border/80 bg-card overflow-hidden shadow-sm hover:shadow-2xl hover:border-primary/50 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between"
+              >
+                <div>
+                  {/* Photo Container */}
+                  <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
+                    <img
+                      src={project.imageUrl}
+                      alt={project.title}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-108"
+                    />
+                    {/* Subtle Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
+
+                    {/* Top Badges */}
+                    <div className="absolute top-3 left-3 flex items-center gap-2">
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] font-black border backdrop-blur-md px-3 py-1 rounded-full shadow-sm ${getCategoryBadgeClass(
+                          project.category
+                        )}`}
+                      >
+                        {project.category}
+                      </Badge>
+                    </div>
+
+                    {project.featured && (
+                      <div className="absolute top-3 right-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full px-2.5 py-1 text-[10px] font-black shadow-lg flex items-center gap-1">
+                        <Star className="h-3 w-3 fill-white" />
+                        <span>Featured</span>
+                      </div>
+                    )}
+
+                    {/* Quick Expand Icon on Hover */}
+                    <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/70 hover:bg-black/90 text-white p-2 rounded-xl backdrop-blur-md shadow-lg">
+                      <Maximize2 className="h-4 w-4" />
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-5 space-y-3">
+                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+                      {project.date && (
+                        <span className="inline-flex items-center gap-1 font-medium">
+                          <Calendar className="h-3 w-3 text-primary" />
+                          {project.date}
+                        </span>
+                      )}
+                      {project.clientOrInstitution && (
+                        <span className="inline-flex items-center gap-1 font-medium">
+                          <Building className="h-3 w-3 text-amber-500" />
+                          {project.clientOrInstitution}
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="font-extrabold text-foreground text-base leading-snug group-hover:text-primary transition-colors">
+                      {project.title}
+                    </h3>
+
+                    <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
+                      {project.description}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Card Footer Link */}
+                <div className="p-5 pt-0 mt-2 flex items-center justify-between border-t border-border/40 pt-4 text-xs font-bold text-primary group-hover:text-primary/90">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span>View Project Details</span>
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                  </span>
+                  <span className="text-[11px] text-muted-foreground font-normal">
+                    Click to inspect
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* ----------------------------------------------------------- */}
         {/* LIGHTBOX / PROJECT DETAILS DIALOG                           */}

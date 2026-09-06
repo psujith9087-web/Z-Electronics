@@ -1,46 +1,13 @@
 [
   {
-    "id": "893736ea-bf2d-43c4-a423-7c57e98f4aa5",
-    "title": "Z-Electronics 1000+ Hardware Orders Milestone",
-    "description": "Proud achievement celebrating over 1,000 verified electronics components and development kits supplied directly to aspiring student engineers, hobbyists, and lab makers across the region.",
-    "category": "Milestone",
-    "imageUrl": "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?auto=format&fit=crop&w=1000&q=80",
-    "date": "May 2026",
-    "clientOrInstitution": "Z-Electronics Foundation",
-    "featured": false,
-    "createdAt": "2026-09-06T10:56:36.459159+00:00"
-  },
-  {
-    "id": "81270bf3-a520-4356-992a-33720ceb6290",
-    "title": "Custom Drone PDB & High-Amperage ESC Power Harness",
-    "description": "High-current Power Distribution Board (PDB) designed for carbon-fiber multi-rotor drones, delivering stable 5V/12V dual BEC rails and 60A surge capacity across 4 brushless ESC channels.",
-    "category": "Custom Circuit",
-    "imageUrl": "https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=1000&q=80",
-    "date": "June 2026",
-    "clientOrInstitution": "Aeronautics Research Project",
-    "featured": true,
-    "createdAt": "2026-09-06T10:56:36.376878+00:00"
-  },
-  {
-    "id": "00f9492b-2e4b-41f2-a311-fc19f2dd9ac4",
-    "title": "50-Node Industrial RS-485 Sensor Telemetry Order",
-    "description": "Full turnkey component sourcing and batch verification of 50 industrial telemetry units featuring STM32 microcontrollers, optocoupled relays, and precision temperature/humidity sensing modules delivered with zero defect rate.",
+    "id": "a91e9cf8-2829-4c23-9464-1634bdcef9ae",
+    "title": "Smart Automation System",
+    "description": "Custom IoT home and lab automation hardware build delivered to client.",
     "category": "Completed Order",
-    "imageUrl": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1000&q=80",
-    "date": "July 2026",
-    "clientOrInstitution": "Precision Agro-Tech Solutions",
+    "imageUrl": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
+    "date": "September 2026",
+    "clientOrInstitution": "Client Project",
     "featured": true,
-    "createdAt": "2026-09-06T10:56:36.279386+00:00"
-  },
-  {
-    "id": "c043b3f2-39e4-45f2-b3ca-d2fb894127c5",
-    "title": "Autonomous Quad-Wheel Obstacle Avoidance Rover",
-    "description": "Custom engineered 4WD robotics chassis powered by ESP32 microcontrollers, HC-SR04 ultrasonic arrays, and dual L298N high-power motor drivers. Built for collegiate robotics competition with real-time Bluetooth telemetry.",
-    "category": "Robotics & IoT",
-    "imageUrl": "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1000&q=80",
-    "date": "August 2026",
-    "clientOrInstitution": "Engineering TechFest Robotics Team",
-    "featured": true,
-    "createdAt": "2026-09-06T10:56:36.154851+00:00"
+    "createdAt": "2026-09-06T11:25:41.604417+00:00"
   }
 ]
