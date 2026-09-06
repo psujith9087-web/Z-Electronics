@@ -537,9 +537,9 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
       {/* ADD PROJECT DIALOG                                            */}
       {/* ------------------------------------------------------------- */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="max-w-lg rounded-2xl p-6">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+        <DialogContent className="max-w-lg w-[95vw] sm:w-full max-h-[88vh] flex flex-col p-0 overflow-hidden rounded-2xl border border-border shadow-2xl">
+          <DialogHeader className="p-4 sm:p-5 pb-3 border-b border-border/40 shrink-0 bg-card">
+            <DialogTitle className="text-base sm:text-lg font-bold flex items-center gap-2">
               <Trophy className="h-5 w-5 text-primary" />
               Add Completed Project or Achievement
             </DialogTitle>
@@ -548,9 +548,10 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleCreateProject} className="space-y-4 mt-2">
-            {/* Photograph Upload from Files */}
-            <div className="space-y-2">
+          <form onSubmit={handleCreateProject} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <div className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
+              {/* Photograph Upload from Files */}
+              <div className="space-y-2">
               <Label className="text-xs font-semibold">Project Photograph *</Label>
 
               <input
@@ -711,8 +712,14 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
                 Feature prominently at the top of the Legacy Showcase
               </Label>
             </div>
+          </div>
 
-            <DialogFooter className="pt-2">
+          <DialogFooter className="p-3 sm:p-4 border-t border-border/50 bg-muted/30 shrink-0 flex flex-row items-center justify-between gap-2">
+            <span className="text-[11px] text-muted-foreground hidden sm:inline">
+              {!addImageUrl ? "⚠️ Please select a photograph" : !addTitle.trim() ? "⚠️ Please enter a title" : "✓ Ready to upload"}
+            </span>
+
+            <div className="flex items-center gap-2 ml-auto">
               <Button
                 type="button"
                 variant="outline"
@@ -724,29 +731,35 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
               <Button
                 type="submit"
                 disabled={isSubmittingAdd || !addTitle.trim() || !addImageUrl.trim()}
-                className="rounded-xl text-xs font-semibold h-9 px-5 gap-1.5"
+                className="rounded-xl text-xs font-bold h-9 px-4 sm:px-6 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md cursor-pointer"
               >
-                {isSubmittingAdd && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                <span>Save to Database</span>
+                {isSubmittingAdd ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <UploadCloud className="h-4 w-4" />
+                )}
+                <span>Upload &amp; Save Project</span>
               </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+            </div>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
 
       {/* ------------------------------------------------------------- */}
       {/* EDIT PROJECT DIALOG                                           */}
       {/* ------------------------------------------------------------- */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-lg rounded-2xl p-6">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+        <DialogContent className="max-w-lg w-[95vw] sm:w-full max-h-[88vh] flex flex-col p-0 overflow-hidden rounded-2xl border border-border shadow-2xl">
+          <DialogHeader className="p-4 sm:p-5 pb-3 border-b border-border/40 shrink-0 bg-card">
+            <DialogTitle className="text-base sm:text-lg font-bold flex items-center gap-2">
               <Edit2 className="h-5 w-5 text-primary" />
               Edit Project Details
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleUpdateProject} className="space-y-4 mt-2">
+          <form onSubmit={handleUpdateProject} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <div className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
             {/* Photograph */}
             <div className="space-y-2">
               <Label className="text-xs font-semibold">Project Photograph</Label>
@@ -869,28 +882,33 @@ export function ProjectsManager({ initialProjects }: ProjectsManagerProps) {
                 Feature prominently at the top of the Legacy Showcase
               </Label>
             </div>
+          </div>
 
-            <DialogFooter className="pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsEditOpen(false)}
-                className="rounded-xl text-xs h-9"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmittingEdit || !editTitle.trim()}
-                className="rounded-xl text-xs font-semibold h-9 px-5 gap-1.5"
-              >
-                {isSubmittingEdit && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                <span>Update in Database</span>
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          <DialogFooter className="p-3 sm:p-4 border-t border-border/50 bg-muted/30 shrink-0 flex flex-row items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsEditOpen(false)}
+              className="rounded-xl text-xs h-9"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmittingEdit || !editTitle.trim()}
+              className="rounded-xl text-xs font-bold h-9 px-4 sm:px-6 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md cursor-pointer"
+            >
+              {isSubmittingEdit ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <UploadCloud className="h-4 w-4" />
+              )}
+              <span>Update &amp; Save to Database</span>
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
 
       {/* ------------------------------------------------------------- */}
       {/* DELETE SINGLE CONFIRMATION DIALOG                             */}
