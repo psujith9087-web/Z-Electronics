@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, FileText, Truck, Cpu, ShieldCheck } from "lucide-react";
 import { DreamyButterflies } from "@/components/effects/dreamy-butterflies";
+import { InteractiveHeroHeadline } from "@/components/home/interactive-hero-headline";
 
 export default function HeroSection() {
   // Out-of-focus neon particles (cyan and purple)
@@ -81,13 +82,8 @@ export default function HeroSection() {
           <span>Enterprise & Maker Hardware Supply</span>
         </div>
 
-        {/* Center-aligned Main Headline with White-to-Light-Gray Gradient */}
-        <h1 className="text-4xl font-extrabold tracking-[-0.035em] sm:text-6xl lg:text-7xl max-w-4xl mx-auto leading-[1.08] text-center">
-          <span className="text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-100 to-zinc-400">
-            Engineered for Makers. <br className="hidden sm:inline" />
-            Supplied with Precision.
-          </span>
-        </h1>
+        {/* Interactive Living Headline: Typewriter, Cursor Reactive 3D Tilt, & Floating Levitation */}
+        <InteractiveHeroHeadline />
 
         {/* Constrained Sub-headline for Optimal Readability */}
         <p className="mt-6 text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed font-normal text-center">
