@@ -3,6 +3,7 @@
 import fs from "fs";
 import path from "path";
 import { revalidatePath } from "next/cache";
+import { checkAdminSession } from "@/lib/actions/admin-auth";
 
 export interface PaymentConfig {
   upiId: string;
@@ -41,6 +42,11 @@ export async function getPaymentConfig(): Promise<PaymentConfig> {
 export async function updatePaymentConfig(
   config: Partial<PaymentConfig>
 ): Promise<{ success: boolean; data?: PaymentConfig; error?: string }> {
+  const isAdmin = await checkAdminSession();
+  if (!isAdmin) {
+    return { success: false, error: "Unauthorized. Admin privileges required." };
+  }
+
   try {
     const current = await getPaymentConfig();
     const updated: PaymentConfig = {

@@ -7,6 +7,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { MOCK_COMPONENTS } from "@/lib/mock-data";
 import { ComponentItem } from "@/lib/types";
 import { revalidatePath } from "next/cache";
+import { checkAdminSession } from "@/lib/actions/admin-auth";
 
 const COMPONENT_IMAGES_FILE = path.join(process.cwd(), "public", "component-images.json");
 
@@ -108,6 +109,11 @@ export async function getComponents(): Promise<ComponentItem[]> {
 }
 
 export async function createComponent(formData: FormData): Promise<{ success: boolean; data?: ComponentItem; error?: string }> {
+  const isAdmin = await checkAdminSession();
+  if (!isAdmin) {
+    return { success: false, error: "Unauthorized. Admin privileges required." };
+  }
+
   try {
     const name = formData.get("name") as string;
     const description = (formData.get("description") as string) || "";
@@ -191,6 +197,11 @@ export async function updateComponent(
   id: string,
   formData: FormData
 ): Promise<{ success: boolean; data?: ComponentItem; error?: string }> {
+  const isAdmin = await checkAdminSession();
+  if (!isAdmin) {
+    return { success: false, error: "Unauthorized. Admin privileges required." };
+  }
+
   try {
     const name = formData.get("name") as string;
     const description = (formData.get("description") as string) || "";
@@ -274,6 +285,11 @@ export async function updateComponent(
 }
 
 export async function deleteComponent(id: string): Promise<{ success: boolean; error?: string }> {
+  const isAdmin = await checkAdminSession();
+  if (!isAdmin) {
+    return { success: false, error: "Unauthorized. Admin privileges required." };
+  }
+
   try {
     if (!isSupabaseConfigured()) {
       const idx = MOCK_COMPONENTS.findIndex((c) => c.id === id);

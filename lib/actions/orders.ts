@@ -115,8 +115,14 @@ export async function createOrder(data: OrderCreationData): Promise<{ success: b
 }
 
 import { getCustomerSession } from "@/lib/actions/auth";
+import { checkAdminSession } from "@/lib/actions/admin-auth";
 
 export async function getAllOrders(): Promise<Order[]> {
+  const isAdmin = await checkAdminSession();
+  if (!isAdmin) {
+    return [];
+  }
+
   try {
     if (!isSupabaseConfigured()) {
       return MOCK_ORDERS;
@@ -180,6 +186,11 @@ export async function updateOrderStatus(
   orderId: string,
   status: OrderStatus
 ): Promise<{ success: boolean; error?: string }> {
+  const isAdmin = await checkAdminSession();
+  if (!isAdmin) {
+    return { success: false, error: "Unauthorized. Admin privileges required." };
+  }
+
   try {
     if (!isSupabaseConfigured()) {
       const order = MOCK_ORDERS.find((o) => o.id === orderId);
@@ -261,9 +272,13 @@ export async function searchOrders(query: string): Promise<Order[]> {
   const trimmed = query.trim();
   if (!trimmed) return [];
 
+  // Sanitize input to prevent PostgREST/SQL filter injection
+  const cleanTerm = trimmed.replace(/[%()'",.;:\\]/g, "").trim();
+  if (!cleanTerm) return [];
+
   try {
     if (!isSupabaseConfigured()) {
-      const cleanQ = trimmed.toLowerCase();
+      const cleanQ = cleanTerm.toLowerCase();
       return MOCK_ORDERS.filter(
         (o) =>
           o.id.toLowerCase().includes(cleanQ) ||
@@ -273,7 +288,7 @@ export async function searchOrders(query: string): Promise<Order[]> {
     }
 
     const supabase = await createClient();
-    const digitsOnly = trimmed.replace(/\D/g, "");
+    const digitsOnly = cleanTerm.replace(/\D/g, "");
 
     let ordersQuery = supabase.from("orders").select(`
       *,
@@ -286,7 +301,7 @@ export async function searchOrders(query: string): Promise<Order[]> {
     if (digitsOnly.length >= 7) {
       ordersQuery = ordersQuery.ilike("customer_phone", `%${digitsOnly}%`);
     } else {
-      ordersQuery = ordersQuery.or(`id.ilike.%${trimmed}%,customer_name.ilike.%${trimmed}%`);
+      ordersQuery = ordersQuery.or(`id.ilike.%${cleanTerm}%,customer_name.ilike.%${cleanTerm}%`);
     }
 
     const { data, error } = await ordersQuery.order("created_at", { ascending: false }).limit(10);
@@ -316,6 +331,11 @@ export async function getOrderStats() {
 }
 
 export async function deleteOrder(orderId: string): Promise<{ success: boolean; error?: string }> {
+  const isAdmin = await checkAdminSession();
+  if (!isAdmin) {
+    return { success: false, error: "Unauthorized. Admin privileges required." };
+  }
+
   try {
     if (!isSupabaseConfigured()) {
       const idx = MOCK_ORDERS.findIndex((o) => o.id === orderId);
@@ -360,6 +380,11 @@ export async function deleteOrder(orderId: string): Promise<{ success: boolean; 
 }
 
 export async function resetAllOrders(): Promise<{ success: boolean; error?: string; count?: number }> {
+  const isAdmin = await checkAdminSession();
+  if (!isAdmin) {
+    return { success: false, error: "Unauthorized. Admin privileges required." };
+  }
+
   try {
     if (!isSupabaseConfigured()) {
       const count = MOCK_ORDERS.length;

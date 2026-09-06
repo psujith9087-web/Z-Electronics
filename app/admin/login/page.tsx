@@ -134,27 +134,29 @@ export default function AdminLoginPage() {
                 )}
               </Button>
 
-              {/* Quick credential tip */}
-              <div className="mt-2 rounded-xl bg-muted/50 p-3 border text-[11px] text-muted-foreground flex items-center justify-between gap-2">
-                <div>
-                  <p className="font-semibold text-foreground mb-0.5">Admin Access Hint:</p>
-                  <p>
-                    Use <strong className="text-foreground">admin@z-electronics.com</strong> with password <strong className="text-foreground">admin123</strong>.
-                  </p>
+              {/* Quick credential tip - only rendered in local development */}
+              {process.env.NODE_ENV !== "production" && (
+                <div className="mt-2 rounded-xl bg-muted/50 p-3 border text-[11px] text-muted-foreground flex items-center justify-between gap-2">
+                  <div>
+                    <p className="font-semibold text-foreground mb-0.5">Admin Access Hint (Dev Only):</p>
+                    <p>
+                      Use <strong className="text-foreground">admin@z-electronics.com</strong> with password <strong className="text-foreground">admin123</strong>.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="text-[10px] h-7 px-2.5 shrink-0 font-semibold"
+                    onClick={() => {
+                      setEmail("admin@z-electronics.com");
+                      setPassword("admin123");
+                    }}
+                  >
+                    Autofill
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="text-[10px] h-7 px-2.5 shrink-0 font-semibold"
-                  onClick={() => {
-                    setEmail("admin@z-electronics.com");
-                    setPassword("admin123");
-                  }}
-                >
-                  Autofill
-                </Button>
-              </div>
+              )}
             </form>
           </CardContent>
         </Card>

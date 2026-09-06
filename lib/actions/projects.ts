@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { checkAdminSession } from "@/lib/actions/admin-auth";
 
 export type ProjectCategory =
   | "Completed Order"
@@ -128,6 +129,11 @@ export async function getProjects(): Promise<ProjectItem[]> {
 export async function createProject(
   input: Omit<ProjectItem, "id" | "createdAt">
 ): Promise<{ success: boolean; data?: ProjectItem; error?: string }> {
+  const isAdmin = await checkAdminSession();
+  if (!isAdmin) {
+    return { success: false, error: "Unauthorized. Admin privileges required." };
+  }
+
   try {
     if (!input.title?.trim()) {
       return { success: false, error: "Project title is required." };
@@ -197,6 +203,11 @@ export async function updateProject(
   id: string,
   input: Partial<Omit<ProjectItem, "id" | "createdAt">> & { oldTitle?: string }
 ): Promise<{ success: boolean; data?: ProjectItem; error?: string }> {
+  const isAdmin = await checkAdminSession();
+  if (!isAdmin) {
+    return { success: false, error: "Unauthorized. Admin privileges required." };
+  }
+
   try {
     const supabase = await createClient();
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
@@ -310,6 +321,11 @@ export async function deleteProject(
   id: string,
   title?: string
 ): Promise<{ success: boolean; error?: string }> {
+  const isAdmin = await checkAdminSession();
+  if (!isAdmin) {
+    return { success: false, error: "Unauthorized. Admin privileges required." };
+  }
+
   try {
     const supabase = await createClient();
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
@@ -359,6 +375,11 @@ export async function deleteProject(
  * Delete ALL projects from database to start fresh.
  */
 export async function clearAllProjects(): Promise<{ success: boolean; error?: string }> {
+  const isAdmin = await checkAdminSession();
+  if (!isAdmin) {
+    return { success: false, error: "Unauthorized. Admin privileges required." };
+  }
+
   try {
     const supabase = await createClient();
     const { error } = await supabase

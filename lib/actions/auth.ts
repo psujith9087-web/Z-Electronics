@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Profile } from "@/lib/types";
+import { signCustomerSession, verifyCustomerSession } from "@/lib/security";
 
 export interface CustomerSession {
   id?: string;
@@ -21,19 +22,9 @@ export async function getCustomerSession(): Promise<CustomerSession | null> {
     const sessionCookie = cookieStore.get(CUSTOMER_COOKIE);
 
     if (sessionCookie?.value) {
-      try {
-        const parsed = JSON.parse(sessionCookie.value);
-        if (parsed?.phone && parsed?.name) {
-          return {
-            id: parsed.id || `cust_${parsed.phone}`,
-            name: parsed.name,
-            phone: parsed.phone,
-            email: parsed.email || "",
-            isLoggedIn: true,
-          };
-        }
-      } catch {
-        // Fall through to Supabase auth check
+      const verified = verifyCustomerSession(sessionCookie.value);
+      if (verified) {
+        return verified;
       }
     }
 
@@ -89,8 +80,9 @@ export async function loginWithPhone(formData: FormData) {
     isLoggedIn: true,
   };
 
+  const signedCookie = signCustomerSession(customerSession);
   const cookieStore = await cookies();
-  cookieStore.set(CUSTOMER_COOKIE, JSON.stringify(customerSession), {
+  cookieStore.set(CUSTOMER_COOKIE, signedCookie, {
     path: "/",
     maxAge: 60 * 60 * 24 * 90, // 90 days
     httpOnly: true,
@@ -131,8 +123,9 @@ export async function signIn(formData: FormData) {
       isLoggedIn: true,
     };
 
+    const signedCookie = signCustomerSession(customerSession);
     const cookieStore = await cookies();
-    cookieStore.set(CUSTOMER_COOKIE, JSON.stringify(customerSession), {
+    cookieStore.set(CUSTOMER_COOKIE, signedCookie, {
       path: "/",
       maxAge: 60 * 60 * 24 * 90,
       httpOnly: true,
@@ -176,8 +169,9 @@ export async function signUp(formData: FormData) {
       isLoggedIn: true,
     };
 
+    const signedCookie = signCustomerSession(customerSession);
     const cookieStore = await cookies();
-    cookieStore.set(CUSTOMER_COOKIE, JSON.stringify(customerSession), {
+    cookieStore.set(CUSTOMER_COOKIE, signedCookie, {
       path: "/",
       maxAge: 60 * 60 * 24 * 90,
       httpOnly: true,
