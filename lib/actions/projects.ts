@@ -3,6 +3,7 @@
 import fs from "fs";
 import path from "path";
 import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
 
 export type ProjectCategory =
   | "Completed Order"
@@ -28,7 +29,7 @@ const PROJECTS_FILE = path.join(process.cwd(), "public", "projects-legacy.json")
 
 const INITIAL_PROJECTS: ProjectItem[] = [
   {
-    id: "proj-1",
+    id: "c043b3f2-39e4-45f2-b3ca-d2fb894127c5",
     title: "Autonomous Quad-Wheel Obstacle Avoidance Rover",
     category: "Robotics & IoT",
     description:
@@ -38,10 +39,10 @@ const INITIAL_PROJECTS: ProjectItem[] = [
     date: "August 2026",
     clientOrInstitution: "Engineering TechFest Robotics Team",
     featured: true,
-    createdAt: new Date().toISOString(),
+    createdAt: "2026-08-15T10:00:00.000Z",
   },
   {
-    id: "proj-2",
+    id: "00f9492b-2e4b-41f2-a311-fc19f2dd9ac4",
     title: "50-Node Industrial RS-485 Sensor Telemetry Order",
     category: "Completed Order",
     description:
@@ -51,10 +52,10 @@ const INITIAL_PROJECTS: ProjectItem[] = [
     date: "July 2026",
     clientOrInstitution: "Precision Agro-Tech Solutions",
     featured: true,
-    createdAt: new Date().toISOString(),
+    createdAt: "2026-07-20T10:00:00.000Z",
   },
   {
-    id: "proj-3",
+    id: "81270bf3-a520-4356-992a-33720ceb6290",
     title: "Custom Drone PDB & High-Amperage ESC Power Harness",
     category: "Custom Circuit",
     description:
@@ -64,10 +65,10 @@ const INITIAL_PROJECTS: ProjectItem[] = [
     date: "June 2026",
     clientOrInstitution: "Aeronautics Research Project",
     featured: true,
-    createdAt: new Date().toISOString(),
+    createdAt: "2026-06-10T10:00:00.000Z",
   },
   {
-    id: "proj-4",
+    id: "893736ea-bf2d-43c4-a423-7c57e98f4aa5",
     title: "Z-Electronics 1000+ Hardware Orders Milestone",
     category: "Milestone",
     description:
@@ -77,11 +78,11 @@ const INITIAL_PROJECTS: ProjectItem[] = [
     date: "May 2026",
     clientOrInstitution: "Z-Electronics Foundation",
     featured: false,
-    createdAt: new Date().toISOString(),
+    createdAt: "2026-05-01T10:00:00.000Z",
   },
 ];
 
-function readProjectsFile(): ProjectItem[] {
+function readLocalProjects(): ProjectItem[] {
   try {
     if (fs.existsSync(PROJECTS_FILE)) {
       const raw = fs.readFileSync(PROJECTS_FILE, "utf8");
@@ -91,28 +92,142 @@ function readProjectsFile(): ProjectItem[] {
       }
     }
   } catch (err) {
-    console.error("Error reading projects-legacy.json:", err);
+    console.error("Error reading local projects file:", err);
   }
   return INITIAL_PROJECTS;
 }
 
-function writeProjectsFile(projects: ProjectItem[]): void {
-  const publicDir = path.join(process.cwd(), "public");
-  if (!fs.existsSync(publicDir)) {
-    fs.mkdirSync(publicDir, { recursive: true });
+function writeLocalProjects(projects: ProjectItem[]): void {
+  try {
+    const publicDir = path.join(process.cwd(), "public");
+    if (!fs.existsSync(publicDir)) {
+      fs.mkdirSync(publicDir, { recursive: true });
+    }
+    fs.writeFileSync(PROJECTS_FILE, JSON.stringify(projects, null, 2), "utf8");
+  } catch (err) {
+    console.error("Error writing local projects cache:", err);
   }
-  fs.writeFileSync(PROJECTS_FILE, JSON.stringify(projects, null, 2), "utf8");
 }
 
+function parseProjectRow(row: any): ProjectItem | null {
+  try {
+    const desc = row.description || "";
+    if (!desc.startsWith("__PROJECT__")) return null;
+
+    const jsonStr = desc.substring("__PROJECT__".length);
+    const parsed = JSON.parse(jsonStr);
+
+    return {
+      id: row.id,
+      title: parsed.title || row.name?.replace("[PROJECT] ", "") || "Untitled Project",
+      description: parsed.description || "",
+      category: parsed.category || "Completed Order",
+      imageUrl: parsed.imageUrl || "",
+      date: parsed.date || "",
+      clientOrInstitution: parsed.clientOrInstitution || "",
+      featured: Boolean(parsed.featured),
+      createdAt: row.created_at || new Date().toISOString(),
+    };
+  } catch (err) {
+    console.error("Error parsing project row:", row.id, err);
+    return null;
+  }
+}
+
+/**
+ * Fetch all projects from Supabase database.
+ * Falls back to local cache if database is unreachable.
+ */
 export async function getProjects(): Promise<ProjectItem[]> {
-  const projects = readProjectsFile();
-  return projects.sort((a, b) => {
-    if (a.featured && !b.featured) return -1;
-    if (!a.featured && b.featured) return 1;
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("components")
+      .select("*")
+      .ilike("description", "__PROJECT__%")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Supabase error fetching projects:", error.message);
+      return readLocalProjects();
+    }
+
+    if (data && data.length > 0) {
+      const projects: ProjectItem[] = [];
+      for (const row of data) {
+        const parsed = parseProjectRow(row);
+        if (parsed) projects.push(parsed);
+      }
+
+      // Sync local cache with database
+      if (projects.length > 0) {
+        writeLocalProjects(projects);
+      }
+
+      // Sort featured projects to the top, then newest first
+      return projects.sort((a, b) => {
+        if (a.featured && !b.featured) return -1;
+        if (!a.featured && b.featured) return 1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+    }
+
+    // If database returned 0 projects, seed initial projects into Supabase
+    return await seedInitialProjectsToDatabase();
+  } catch (err) {
+    console.error("Unexpected error in getProjects:", err);
+    return readLocalProjects();
+  }
 }
 
+async function seedInitialProjectsToDatabase(): Promise<ProjectItem[]> {
+  try {
+    const supabase = await createClient();
+    const seeded: ProjectItem[] = [];
+
+    for (const p of INITIAL_PROJECTS) {
+      const payload = JSON.stringify({
+        title: p.title,
+        description: p.description,
+        category: p.category,
+        imageUrl: p.imageUrl,
+        date: p.date,
+        clientOrInstitution: p.clientOrInstitution,
+        featured: p.featured,
+      });
+
+      const { data, error } = await supabase
+        .from("components")
+        .insert({
+          name: `[PROJECT] ${p.title}`,
+          description: `__PROJECT__${payload}`,
+          price: 0,
+          stock_quantity: 0,
+        })
+        .select();
+
+      if (!error && data && data[0]) {
+        seeded.push({
+          ...p,
+          id: data[0].id,
+          createdAt: data[0].created_at,
+        });
+      }
+    }
+
+    if (seeded.length > 0) {
+      writeLocalProjects(seeded);
+      return seeded;
+    }
+  } catch (err) {
+    console.error("Error seeding initial projects:", err);
+  }
+  return INITIAL_PROJECTS;
+}
+
+/**
+ * Add a new project photograph and details permanently into Supabase database.
+ */
 export async function createProject(
   input: Omit<ProjectItem, "id" | "createdAt">
 ): Promise<{ success: boolean; data?: ProjectItem; error?: string }> {
@@ -124,21 +239,47 @@ export async function createProject(
       return { success: false, error: "Project photograph is required." };
     }
 
-    const current = readProjectsFile();
-    const newProject: ProjectItem = {
-      id: `proj-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-      title: input.title.trim(),
+    const title = input.title.trim();
+    const payload = JSON.stringify({
+      title,
       description: input.description?.trim() || "",
       category: input.category || "Completed Order",
       imageUrl: input.imageUrl.trim(),
       date: input.date?.trim() || "",
       clientOrInstitution: input.clientOrInstitution?.trim() || "",
       featured: Boolean(input.featured),
-      createdAt: new Date().toISOString(),
+    });
+
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("components")
+      .insert({
+        name: `[PROJECT] ${title}`,
+        description: `__PROJECT__${payload}`,
+        price: 0,
+        stock_quantity: 0,
+      })
+      .select();
+
+    if (error || !data || !data[0]) {
+      throw new Error(error?.message || "Database insert failed");
+    }
+
+    const newProject: ProjectItem = {
+      id: data[0].id,
+      title,
+      description: input.description?.trim() || "",
+      category: input.category || "Completed Order",
+      imageUrl: input.imageUrl.trim(),
+      date: input.date?.trim() || "",
+      clientOrInstitution: input.clientOrInstitution?.trim() || "",
+      featured: Boolean(input.featured),
+      createdAt: data[0].created_at,
     };
 
-    const updated = [newProject, ...current];
-    writeProjectsFile(updated);
+    // Update local cache
+    const current = readLocalProjects();
+    writeLocalProjects([newProject, ...current]);
 
     revalidatePath("/");
     revalidatePath("/legacy");
@@ -146,40 +287,91 @@ export async function createProject(
 
     return { success: true, data: newProject };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to create project.";
+    console.error("Error creating project in database:", err);
+    const message = err instanceof Error ? err.message : "Failed to create project in database.";
     return { success: false, error: message };
   }
 }
 
+/**
+ * Update project details and photograph in Supabase database.
+ */
 export async function updateProject(
   id: string,
   input: Partial<Omit<ProjectItem, "id" | "createdAt">>
 ): Promise<{ success: boolean; data?: ProjectItem; error?: string }> {
   try {
-    const current = readProjectsFile();
-    const index = current.findIndex((p) => p.id === id);
+    const supabase = await createClient();
 
-    if (index === -1) {
-      return { success: false, error: "Project not found." };
+    // Fetch existing row to merge
+    const { data: existingRow, error: fetchErr } = await supabase
+      .from("components")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    let existingParsed: Partial<ProjectItem> = {};
+    if (!fetchErr && existingRow) {
+      const parsed = parseProjectRow(existingRow);
+      if (parsed) existingParsed = parsed;
+    }
+
+    const updatedTitle =
+      input.title !== undefined ? input.title.trim() : existingParsed.title || "Project";
+    const updatedDescription =
+      input.description !== undefined ? input.description.trim() : existingParsed.description || "";
+    const updatedCategory = input.category !== undefined ? input.category : existingParsed.category || "Completed Order";
+    const updatedImageUrl =
+      input.imageUrl !== undefined ? input.imageUrl.trim() : existingParsed.imageUrl || "";
+    const updatedDate = input.date !== undefined ? input.date.trim() : existingParsed.date || "";
+    const updatedClient =
+      input.clientOrInstitution !== undefined
+        ? input.clientOrInstitution.trim()
+        : existingParsed.clientOrInstitution || "";
+    const updatedFeatured =
+      input.featured !== undefined ? Boolean(input.featured) : Boolean(existingParsed.featured);
+
+    const payload = JSON.stringify({
+      title: updatedTitle,
+      description: updatedDescription,
+      category: updatedCategory,
+      imageUrl: updatedImageUrl,
+      date: updatedDate,
+      clientOrInstitution: updatedClient,
+      featured: updatedFeatured,
+    });
+
+    const { data: updatedData, error: updateErr } = await supabase
+      .from("components")
+      .update({
+        name: `[PROJECT] ${updatedTitle}`,
+        description: `__PROJECT__${payload}`,
+        price: 0,
+        stock_quantity: 0,
+      })
+      .eq("id", id)
+      .select();
+
+    if (updateErr || !updatedData || !updatedData[0]) {
+      throw new Error(updateErr?.message || "Database update failed");
     }
 
     const updatedProject: ProjectItem = {
-      ...current[index],
-      ...input,
-      title: input.title !== undefined ? input.title.trim() : current[index].title,
-      description: input.description !== undefined ? input.description.trim() : current[index].description,
-      category: input.category !== undefined ? input.category : current[index].category,
-      imageUrl: input.imageUrl !== undefined ? input.imageUrl.trim() : current[index].imageUrl,
-      date: input.date !== undefined ? input.date.trim() : current[index].date,
-      clientOrInstitution:
-        input.clientOrInstitution !== undefined
-          ? input.clientOrInstitution.trim()
-          : current[index].clientOrInstitution,
-      featured: input.featured !== undefined ? Boolean(input.featured) : current[index].featured,
+      id,
+      title: updatedTitle,
+      description: updatedDescription,
+      category: updatedCategory,
+      imageUrl: updatedImageUrl,
+      date: updatedDate,
+      clientOrInstitution: updatedClient,
+      featured: updatedFeatured,
+      createdAt: updatedData[0].created_at,
     };
 
-    current[index] = updatedProject;
-    writeProjectsFile(current);
+    // Update local cache
+    const current = readLocalProjects();
+    const updatedList = current.map((p) => (p.id === id ? updatedProject : p));
+    writeLocalProjects(updatedList);
 
     revalidatePath("/");
     revalidatePath("/legacy");
@@ -187,19 +379,30 @@ export async function updateProject(
 
     return { success: true, data: updatedProject };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to update project.";
+    console.error("Error updating project in database:", err);
+    const message = err instanceof Error ? err.message : "Failed to update project in database.";
     return { success: false, error: message };
   }
 }
 
+/**
+ * Delete project from Supabase database.
+ */
 export async function deleteProject(
   id: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const current = readProjectsFile();
-    const filtered = current.filter((p) => p.id !== id);
+    const supabase = await createClient();
+    const { error } = await supabase.from("components").delete().eq("id", id);
 
-    writeProjectsFile(filtered);
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    // Update local cache
+    const current = readLocalProjects();
+    const filtered = current.filter((p) => p.id !== id);
+    writeLocalProjects(filtered);
 
     revalidatePath("/");
     revalidatePath("/legacy");
@@ -207,7 +410,8 @@ export async function deleteProject(
 
     return { success: true };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to delete project.";
+    console.error("Error deleting project from database:", err);
+    const message = err instanceof Error ? err.message : "Failed to delete project from database.";
     return { success: false, error: message };
   }
 }

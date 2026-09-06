@@ -85,7 +85,12 @@ export async function getComponents(): Promise<ComponentItem[]> {
     return data
       .filter((item: any) => {
         const desc = item.description || "";
-        return !desc.includes("__DELETED__");
+        const name = item.name || "";
+        return (
+          !desc.includes("__DELETED__") &&
+          !desc.includes("__PROJECT__") &&
+          !name.startsWith("[PROJECT]")
+        );
       })
       .map((item: any) => {
         const decoded = decodeDescriptionAndImage(item.description);
