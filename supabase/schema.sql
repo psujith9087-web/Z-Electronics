@@ -73,6 +73,18 @@ INSERT INTO public.payment_settings (id, upi_id, payee_name, phone, note, qr_ima
 VALUES ('default', 'psujith9087-1@okicici', 'Z-Electronics (Sujith)', '8072726924', 'Scan to pay using Google Pay, PhonePe, Paytm, or any UPI app', '')
 ON CONFLICT (id) DO NOTHING;
 
+-- Site Settings Table (For dynamic homepage highlights, stats cards, and CMS settings)
+CREATE TABLE IF NOT EXISTS public.site_settings (
+  id TEXT PRIMARY KEY,
+  data JSONB NOT NULL DEFAULT '[]'::jsonb,
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Enable RLS & allow authenticated admins to manage site settings
+ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read of site settings" ON public.site_settings FOR SELECT USING (true);
+CREATE POLICY "Allow authenticated insert/update of site settings" ON public.site_settings FOR ALL USING (true);
+
 -- Order Items Table
 CREATE TABLE public.order_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

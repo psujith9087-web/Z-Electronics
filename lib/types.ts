@@ -190,6 +190,60 @@ export interface DashboardStats {
   pending_orders: number;
 }
 
+// Homepage Value Proposition Stat Card Type
+export type StatCardIcon =
+  | "Cpu"
+  | "Truck"
+  | "CheckCircle2"
+  | "Headphones"
+  | "ShieldCheck"
+  | "Zap"
+  | "Package"
+  | "Clock"
+  | "Sparkles"
+  | "IndianRupee";
+
+export type StatCardColor = "primary" | "emerald" | "blue" | "indigo" | "amber" | "rose";
+
+export interface StatCard {
+  id: string;
+  icon: StatCardIcon;
+  color: StatCardColor;
+  title: string;
+  subtitle: string;
+}
+
+export const DEFAULT_SITE_STATS: StatCard[] = [
+  {
+    id: "stat-1",
+    icon: "Cpu",
+    color: "primary",
+    title: "500+",
+    subtitle: "Components in Stock",
+  },
+  {
+    id: "stat-2",
+    icon: "Truck",
+    color: "emerald",
+    title: "Same Day",
+    subtitle: "Dispatch Available",
+  },
+  {
+    id: "stat-3",
+    icon: "CheckCircle2",
+    color: "blue",
+    title: "100% Tested",
+    subtitle: "Verified Hardware",
+  },
+  {
+    id: "stat-4",
+    icon: "Headphones",
+    color: "indigo",
+    title: "Direct Support",
+    subtitle: "Owner Sujith",
+  },
+];
+
 // Currency formatting helper in Indian Rupees (₹)
 export function formatPrice(price: number): string {
   return `₹${Number(price || 0).toLocaleString("en-IN", {

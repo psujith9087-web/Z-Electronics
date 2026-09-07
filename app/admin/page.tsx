@@ -3,6 +3,7 @@ import { getComponents } from "@/lib/actions/components";
 import { getAllOrders } from "@/lib/actions/orders";
 import { getPaymentConfig } from "@/lib/actions/payment";
 import { getProjects } from "@/lib/actions/projects";
+import { getSiteStats } from "@/lib/actions/site-stats";
 import { formatPrice } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,8 +11,9 @@ import { ComponentsClient } from "./components-client";
 import { OrdersClient } from "./orders-client";
 import { PaymentQrManager } from "./payment-qr-manager";
 import { ProjectsManager } from "./projects-manager";
+import { StatsManager } from "./stats-manager";
 import AdminLoginPage from "./login/page";
-import { Cpu, ShoppingBag, Clock, CheckCircle2, IndianRupee, QrCode, Trophy } from "lucide-react";
+import { Cpu, ShoppingBag, Clock, CheckCircle2, IndianRupee, QrCode, Trophy, Sparkles } from "lucide-react";
 
 export const revalidate = 0; // Fresh inventory & orders
 
@@ -22,11 +24,12 @@ export default async function AdminDashboardPage() {
     return <AdminLoginPage />;
   }
 
-  const [components, orders, paymentConfig, projects] = await Promise.all([
+  const [components, orders, paymentConfig, projects, siteStats] = await Promise.all([
     getComponents(),
     getAllOrders(),
     getPaymentConfig(),
     getProjects(),
+    getSiteStats(),
   ]);
 
   const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
@@ -206,6 +209,14 @@ export default async function AdminDashboardPage() {
             <QrCode className="h-4 w-4 mr-2" />
             Payment QR Code
           </TabsTrigger>
+
+          <TabsTrigger
+            value="stats"
+            className="rounded-lg h-10 px-5 text-xs sm:text-sm font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
+            <Sparkles className="h-4 w-4 mr-2 text-primary" />
+            Homepage Highlights
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="inventory" className="outline-none focus:outline-none">
@@ -222,6 +233,10 @@ export default async function AdminDashboardPage() {
 
         <TabsContent value="payment" className="outline-none focus:outline-none">
           <PaymentQrManager initialConfig={paymentConfig} />
+        </TabsContent>
+
+        <TabsContent value="stats" className="outline-none focus:outline-none">
+          <StatsManager initialStats={siteStats} />
         </TabsContent>
       </Tabs>
     </div>
