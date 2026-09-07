@@ -90,7 +90,10 @@ export async function getComponents(): Promise<ComponentItem[]> {
         return (
           !desc.includes("__DELETED__") &&
           !desc.includes("__PROJECT__") &&
-          !name.startsWith("[PROJECT]")
+          !desc.includes("__SITE_SETTINGS__") &&
+          !desc.includes("__PAYMENT_CONFIG__") &&
+          !name.startsWith("[PROJECT]") &&
+          !name.startsWith("[SITE_SETTINGS]")
         );
       })
       .map((item: any) => {

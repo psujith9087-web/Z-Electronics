@@ -6,6 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { PaymentConfig } from "@/lib/types";
 
+const PAYMENT_SETTINGS_ROW_NAME = "[SITE_SETTINGS] payment_config";
+const PAYMENT_SETTINGS_PREFIX = "__PAYMENT_CONFIG__";
+
 let inMemoryPaymentConfig: PaymentConfig = {
   upiId: process.env.NEXT_PUBLIC_DEFAULT_UPI_ID || "psujith9087-1@okicici",
   payeeName: process.env.NEXT_PUBLIC_SHOP_NAME || "Z-Electronics (Sujith)",
@@ -25,31 +28,55 @@ export async function getPaymentConfig(): Promise<PaymentConfig> {
     }
 
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("payment_settings")
-      .select("*")
-      .eq("id", "default")
-      .maybeSingle();
 
-    if (error || !data) {
-      // If table is not queried or empty, return in-memory / env fallback
-      return inMemoryPaymentConfig;
+    // 1. Try dedicated payment_settings table first
+    try {
+      const { data, error } = await supabase
+        .from("payment_settings")
+        .select("*")
+        .eq("id", "default")
+        .maybeSingle();
+
+      if (!error && data) {
+        const dbConfig: PaymentConfig = {
+          upiId: data.upi_id || inMemoryPaymentConfig.upiId,
+          payeeName: data.payee_name || inMemoryPaymentConfig.payeeName,
+          qrImageUrl: data.qr_image_url || inMemoryPaymentConfig.qrImageUrl,
+          phone: data.phone || inMemoryPaymentConfig.phone,
+          note: data.note || inMemoryPaymentConfig.note,
+          razorpayKeyId: data.razorpay_key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || inMemoryPaymentConfig.razorpayKeyId,
+          razorpayKeySecret: data.razorpay_key_secret || process.env.RAZORPAY_KEY_SECRET || inMemoryPaymentConfig.razorpayKeySecret,
+          razorpayEnabled: data.razorpay_enabled !== undefined ? data.razorpay_enabled : true,
+          codEnabled: data.cod_enabled !== undefined ? data.cod_enabled : true,
+        };
+
+        inMemoryPaymentConfig = dbConfig;
+        return dbConfig;
+      }
+    } catch {
+      // payment_settings table not created, check components table fallback
     }
 
-    const dbConfig: PaymentConfig = {
-      upiId: data.upi_id || inMemoryPaymentConfig.upiId,
-      payeeName: data.payee_name || inMemoryPaymentConfig.payeeName,
-      qrImageUrl: data.qr_image_url || inMemoryPaymentConfig.qrImageUrl,
-      phone: data.phone || inMemoryPaymentConfig.phone,
-      note: data.note || inMemoryPaymentConfig.note,
-      razorpayKeyId: data.razorpay_key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || inMemoryPaymentConfig.razorpayKeyId,
-      razorpayKeySecret: data.razorpay_key_secret || process.env.RAZORPAY_KEY_SECRET || inMemoryPaymentConfig.razorpayKeySecret,
-      razorpayEnabled: data.razorpay_enabled !== undefined ? data.razorpay_enabled : true,
-      codEnabled: data.cod_enabled !== undefined ? data.cod_enabled : true,
-    };
+    // 2. Guaranteed fallback: check settings row in components table
+    const { data: row } = await supabase
+      .from("components")
+      .select("id, description")
+      .eq("name", PAYMENT_SETTINGS_ROW_NAME)
+      .maybeSingle();
 
-    inMemoryPaymentConfig = dbConfig;
-    return dbConfig;
+    if (row && row.description && row.description.startsWith(PAYMENT_SETTINGS_PREFIX)) {
+      const jsonStr = row.description.substring(PAYMENT_SETTINGS_PREFIX.length);
+      const parsed = JSON.parse(jsonStr);
+      if (parsed && typeof parsed === "object") {
+        inMemoryPaymentConfig = {
+          ...inMemoryPaymentConfig,
+          ...parsed,
+        };
+        return inMemoryPaymentConfig;
+      }
+    }
+
+    return inMemoryPaymentConfig;
   } catch (err) {
     console.warn("Could not load payment settings from database, using cached config:", err);
     return inMemoryPaymentConfig;
@@ -85,27 +112,54 @@ export async function updatePaymentConfig(
 
     if (isSupabaseConfigured()) {
       const supabase = await createClient();
-      const { error } = await supabase
-        .from("payment_settings")
-        .upsert(
-          {
-            id: "default",
-            upi_id: updated.upiId,
-            payee_name: updated.payeeName,
-            phone: updated.phone,
-            note: updated.note,
-            qr_image_url: updated.qrImageUrl,
-            razorpay_key_id: updated.razorpayKeyId,
-            razorpay_key_secret: updated.razorpayKeySecret,
-            razorpay_enabled: updated.razorpayEnabled,
-            cod_enabled: updated.codEnabled,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "id" }
-        );
 
-      if (error) {
-        console.warn("Supabase payment_settings upsert warning:", error.message);
+      // 1. Try upserting to payment_settings table
+      try {
+        await supabase
+          .from("payment_settings")
+          .upsert(
+            {
+              id: "default",
+              upi_id: updated.upiId,
+              payee_name: updated.payeeName,
+              phone: updated.phone,
+              note: updated.note,
+              qr_image_url: updated.qrImageUrl,
+              razorpay_key_id: updated.razorpayKeyId,
+              razorpay_key_secret: updated.razorpayKeySecret,
+              razorpay_enabled: updated.razorpayEnabled,
+              cod_enabled: updated.codEnabled,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "id" }
+          );
+      } catch {
+        // Silently continue to guarantee persistence in existing components table
+      }
+
+      // 2. Always persist in components table (guaranteed present in database)
+      const { data: existing } = await supabase
+        .from("components")
+        .select("id")
+        .eq("name", PAYMENT_SETTINGS_ROW_NAME)
+        .maybeSingle();
+
+      const encodedDescription = `${PAYMENT_SETTINGS_PREFIX}${JSON.stringify(updated)}`;
+
+      if (existing && existing.id) {
+        await supabase
+          .from("components")
+          .update({ description: encodedDescription })
+          .eq("id", existing.id);
+      } else {
+        await supabase
+          .from("components")
+          .insert({
+            name: PAYMENT_SETTINGS_ROW_NAME,
+            description: encodedDescription,
+            price: 0,
+            stock_quantity: 0,
+          });
       }
     }
 
