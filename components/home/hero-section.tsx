@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, FileText, Truck, Cpu, ShieldCheck } from "lucide-react";
 import { DreamyButterflies } from "@/components/effects/dreamy-butterflies";
+import { FloatingPcbTraces } from "@/components/effects/floating-pcb-traces";
 import { InteractiveHeroHeadline } from "@/components/home/interactive-hero-headline";
 
 export default function HeroSection() {
@@ -29,12 +30,16 @@ export default function HeroSection() {
         }}
       />
 
-      {/* -- 2. Out-of-Focus Neon Glow Ambiance (Cyan & Purple) ----------- */}
+      {/* -- 2. Out-of-Focus Neon & Warm Amber Glow Ambiance ----------- */}
       <div className="pointer-events-none absolute -top-40 left-1/4 w-[500px] h-[380px] bg-cyan-500/10 blur-[140px] rounded-full animate-particle-drift" />
       <div className="pointer-events-none absolute top-1/4 right-1/4 w-[540px] h-[420px] bg-purple-600/12 blur-[150px] rounded-full animate-particle-drift-reverse" />
+      <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[460px] bg-amber-500/12 blur-[160px] rounded-full" />
       <div className="pointer-events-none absolute -bottom-32 left-1/3 w-[460px] h-[360px] bg-indigo-600/10 blur-[130px] rounded-full" />
 
-      {/* -- 3. Floating Neon Particles (Drifting & Out-of-Focus) -------- */}
+      {/* -- 3. Floating Golden PCB Circuit Traces & Naturally Illuminated Vias -- */}
+      <FloatingPcbTraces />
+
+      {/* -- 3.5. Floating Neon Particles (Drifting & Out-of-Focus) -------- */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {particles.map((p, i) => (
           <div
@@ -54,7 +59,7 @@ export default function HeroSection() {
         ))}
       </div>
 
-      {/* -- 3.5. Dreamy Bioluminescent Butterflies Flying in Background --- */}
+      {/* -- 3.8. Dreamy Bioluminescent Butterflies Flying in Background --- */}
       <DreamyButterflies />
 
       {/* -- 4. Content Area ---------------------------------------------- */}
