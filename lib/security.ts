@@ -160,3 +160,52 @@ export function verifyCustomerSession(token: string): any | null {
   }
   return null;
 }
+
+// ── Customer Review Rate Limiting & Anti-Spam ────────────────
+const reviewSubmissions = new Map<string, number[]>();
+
+export function checkReviewRateLimit(identifier: string): { allowed: boolean; waitMinutes?: number } {
+  const now = Date.now();
+  const windowMs = 10 * 60 * 1000; // 10 minutes window
+  const maxSubmissions = 3;
+
+  const timestamps = (reviewSubmissions.get(identifier) || []).filter(
+    (time) => now - time < windowMs
+  );
+
+  if (timestamps.length >= maxSubmissions) {
+    const oldest = timestamps[0];
+    const waitMinutes = Math.ceil((windowMs - (now - oldest)) / 60000);
+    return { allowed: false, waitMinutes };
+  }
+
+  reviewSubmissions.set(identifier, timestamps);
+  return { allowed: true };
+}
+
+export function recordReviewSubmission(identifier: string): void {
+  const now = Date.now();
+  const windowMs = 10 * 60 * 1000;
+  const timestamps = (reviewSubmissions.get(identifier) || []).filter(
+    (time) => now - time < windowMs
+  );
+  timestamps.push(now);
+  reviewSubmissions.set(identifier, timestamps);
+}
+
+// ── XSS Sanitization Helper ──────────────────────────────────
+export function sanitizeInputText(input: string | undefined | null, maxLength = 1000): string {
+  if (!input) return "";
+  let clean = input
+    .replace(/<[^>]*>?/gm, "") // strip all HTML tags
+    .replace(/javascript:/gi, "") // strip javascript: pseudo protocols
+    .replace(/onload|onerror|onclick|onmouseover/gi, "") // strip common event handlers
+    .trim();
+
+  if (clean.length > maxLength) {
+    clean = clean.substring(0, maxLength).trim();
+  }
+
+  return clean;
+}
+

@@ -4,6 +4,7 @@ import { getAllOrders } from "@/lib/actions/orders";
 import { getPaymentConfig } from "@/lib/actions/payment";
 import { getProjects } from "@/lib/actions/projects";
 import { getSiteStats } from "@/lib/actions/site-stats";
+import { getAllReviewsAdmin } from "@/lib/actions/reviews";
 import { formatPrice } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,10 +13,11 @@ import { OrdersClient } from "./orders-client";
 import { PaymentQrManager } from "./payment-qr-manager";
 import { ProjectsManager } from "./projects-manager";
 import { StatsManager } from "./stats-manager";
+import { ReviewsManager } from "./reviews-manager";
 import AdminLoginPage from "./login/page";
-import { Cpu, ShoppingBag, Clock, CheckCircle2, IndianRupee, QrCode, Trophy, Sparkles } from "lucide-react";
+import { Cpu, ShoppingBag, Clock, CheckCircle2, IndianRupee, QrCode, Trophy, Sparkles, Star } from "lucide-react";
 
-export const revalidate = 0; // Fresh inventory & orders
+export const revalidate = 0; // Fresh inventory, orders & reviews
 
 export default async function AdminDashboardPage() {
   const isAuthenticated = await checkAdminSession();
@@ -24,12 +26,13 @@ export default async function AdminDashboardPage() {
     return <AdminLoginPage />;
   }
 
-  const [components, orders, paymentConfig, projects, siteStats] = await Promise.all([
+  const [components, orders, paymentConfig, projects, siteStats, reviewsData] = await Promise.all([
     getComponents(),
     getAllOrders(),
     getPaymentConfig(),
     getProjects(),
     getSiteStats(),
+    getAllReviewsAdmin(),
   ]);
 
   const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
@@ -47,7 +50,7 @@ export default async function AdminDashboardPage() {
           Monitor your electronics inventory, incoming orders, and fulfillment workflow.
         </p>
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mt-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 mt-6">
           {/* Total Components */}
           <Card className="rounded-2xl border bg-card shadow-sm">
             <CardContent className="p-4 sm:p-5 flex flex-col justify-between">
@@ -148,8 +151,28 @@ export default async function AdminDashboardPage() {
             </CardContent>
           </Card>
 
+          {/* Customer Reviews Rating */}
+          <Card className="rounded-2xl border bg-card shadow-sm">
+            <CardContent className="p-4 sm:p-5 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-muted-foreground">Reviews</span>
+                <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                  <Star className="h-4 w-4 fill-amber-400" />
+                </div>
+              </div>
+              <div className="mt-3">
+                <span className="text-2xl font-black text-amber-500">
+                  {reviewsData.stats.averageRating}★
+                </span>
+                <span className="text-[11px] text-muted-foreground block mt-0.5">
+                  {reviewsData.stats.total} Total ({reviewsData.stats.pendingCount} Pending)
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Total Revenue */}
-          <Card className="rounded-2xl border bg-card shadow-sm col-span-2 lg:col-span-1">
+          <Card className="rounded-2xl border bg-card shadow-sm col-span-2 md:col-span-1">
             <CardContent className="p-4 sm:p-5 flex flex-col justify-between">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-muted-foreground">Total Revenue</span>
@@ -170,7 +193,7 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* -- Main Operations Tabs (Inventory & Orders & Projects) ----- */}
+      {/* -- Main Operations Tabs (Inventory & Orders & Projects & Reviews) ----- */}
       <Tabs defaultValue="inventory" className="space-y-6">
         <TabsList className="bg-muted p-1 rounded-xl h-12 inline-flex">
           <TabsTrigger
@@ -190,6 +213,19 @@ export default async function AdminDashboardPage() {
             {pendingOrders > 0 && (
               <span className="ml-2 rounded-full bg-amber-500 px-1.5 py-0.2 text-[10px] font-black text-white">
                 {pendingOrders}
+              </span>
+            )}
+          </TabsTrigger>
+
+          <TabsTrigger
+            value="reviews"
+            className="rounded-lg h-10 px-5 text-xs sm:text-sm font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm relative"
+          >
+            <Star className="h-4 w-4 mr-2 text-amber-500 fill-amber-400" />
+            Customer Reviews
+            {reviewsData.stats.pendingCount > 0 && (
+              <span className="ml-2 rounded-full bg-amber-500 px-1.5 py-0.2 text-[10px] font-black text-white">
+                {reviewsData.stats.pendingCount}
               </span>
             )}
           </TabsTrigger>
@@ -225,6 +261,10 @@ export default async function AdminDashboardPage() {
 
         <TabsContent value="orders" className="outline-none focus:outline-none">
           <OrdersClient initialOrders={orders} />
+        </TabsContent>
+
+        <TabsContent value="reviews" className="outline-none focus:outline-none">
+          <ReviewsManager initialReviews={reviewsData.reviews} />
         </TabsContent>
 
         <TabsContent value="projects" className="outline-none focus:outline-none">

@@ -16,6 +16,7 @@ import {
   X,
   Shield,
   ArrowRight,
+  Star,
 } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart-store";
 import { Button } from "@/components/ui/button";
@@ -153,6 +154,13 @@ export function Navbar() {
               <Package className="h-4 w-4 text-sky-500 shrink-0" />
               <span>Live Tracking</span>
             </Link>
+            <Link
+              href="/#reviews"
+              className="flex items-center gap-2 rounded-full px-4 py-1.5 text-xs xl:text-sm font-semibold tracking-tight whitespace-nowrap text-foreground/80 hover:text-foreground hover:bg-card/90 transition-all duration-150 hover:-translate-y-0.5 active:translate-y-0.5 active:scale-95 cursor-pointer shadow-none hover:shadow-xs"
+            >
+              <Star className="h-4 w-4 text-amber-500 shrink-0 fill-amber-400/20" />
+              <span>Reviews</span>
+            </Link>
           </nav>
         </div>
 
@@ -277,6 +285,23 @@ export function Navbar() {
                 <div>
                   <p className="leading-none text-base font-bold">Track Active Order</p>
                   <p className="text-xs font-normal text-muted-foreground mt-1">Live tracking timeline and invoice</p>
+                </div>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            </Link>
+
+            <Link
+              href="/#reviews"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center justify-between p-3.5 rounded-xl hover:bg-muted font-semibold text-sm text-foreground transition-all active:scale-[0.98]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500">
+                  <Star className="h-5 w-5 fill-amber-400/20" />
+                </div>
+                <div>
+                  <p className="leading-none text-base font-bold">Reviews & Ratings</p>
+                  <p className="text-xs font-normal text-muted-foreground mt-1">Verified maker feedback & 5-star reviews</p>
                 </div>
               </div>
               <ArrowRight className="h-4 w-4 text-muted-foreground" />

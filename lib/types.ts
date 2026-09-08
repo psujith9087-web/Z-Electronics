@@ -259,3 +259,16 @@ export function generateSlug(name: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
+
+// Customer Review Interface
+export interface ReviewItem {
+  id: string;
+  customer_name: string;
+  rating: number; // 1 to 5 stars
+  title?: string;
+  comment: string;
+  role_or_college?: string;
+  is_verified: boolean;
+  created_at: string;
+}
+

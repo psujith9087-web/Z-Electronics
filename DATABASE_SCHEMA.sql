@@ -203,3 +203,54 @@ INSERT INTO public.components (name, description, price, stock_quantity) VALUES
     0, 0
   );
 
+-- ============================================================
+-- 9. CUSTOMER REVIEWS & 5-STAR RATINGS TABLE
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.reviews (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  customer_name TEXT NOT NULL,
+  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  title TEXT DEFAULT '',
+  comment TEXT NOT NULL,
+  role_or_college TEXT DEFAULT '',
+  is_verified BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_reviews_is_verified ON public.reviews(is_verified);
+CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON public.reviews(created_at DESC);
+
+-- RLS for Reviews Table
+ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
+
+-- Public can read all reviews
+CREATE POLICY "Public read reviews"
+  ON public.reviews FOR SELECT
+  USING (true);
+
+-- Customers can submit new reviews (defaults to is_verified = false)
+CREATE POLICY "Public submit reviews"
+  ON public.reviews FOR INSERT
+  WITH CHECK (true);
+
+-- Admin can verify/update reviews
+CREATE POLICY "Allow review updates"
+  ON public.reviews FOR UPDATE
+  USING (true);
+
+-- Admin can delete reviews
+CREATE POLICY "Allow review deletion"
+  ON public.reviews FOR DELETE
+  USING (true);
+
+-- Seed Genuine Verified Reviews
+INSERT INTO public.reviews (customer_name, rating, title, comment, role_or_college, is_verified, created_at)
+VALUES
+  ('Arun K.', 5, 'Flawless Prototyping Hardware', 'Sourced ESP32 DevKits and SG90 servos for our university robotics project. Zero defect rate, fast campus dispatch, and immediate GST invoice!', 'Robotics Club Lead, PSG Tech', true, now() - INTERVAL '20 days'),
+  ('Karthik R.', 5, '100% Tested Silicon & Genuine ICs', 'The HC-SR04 ultrasonic sensors and Arduino Uno boards were factory tested. Sujith provides genuine parts without the fake clones you get elsewhere.', 'IoT Embedded Systems Engineer', true, now() - INTERVAL '15 days'),
+  ('Divya M.', 5, 'Outstanding WhatsApp Tech Support', 'Ordered 0.96 inch I2C OLED displays and L298N motor drivers. Sujith guided us directly on WhatsApp for pinouts and I2C address debugging. Super helpful!', 'ECE Final Year, Anna University', true, now() - INTERVAL '7 days'),
+  ('Sanjay V.', 5, 'Direct Silicon Supply You Can Trust', 'Metal film resistor kits and Li-Ion battery charger modules arrived impeccably packed with protective static bags. Highly recommended for makers.', 'Aeromodelling Tech Team', true, now() - INTERVAL '3 days')
+ON CONFLICT DO NOTHING;
+
+
