@@ -31,14 +31,29 @@ const securityHeaders = [
   },
 ];
 
+function getCleanUrl(): string {
+  let u = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim().replace(/^["']|["']$/g, "");
+  if (!u || u === "undefined" || u === "null" || u.includes("placeholder")) {
+    return "https://cuidsmnsmouudbgodtcj.supabase.co";
+  }
+  if (!u.startsWith("http://") && !u.startsWith("https://")) {
+    return `https://${u}`;
+  }
+  return u;
+}
+
+function getCleanKey(): string {
+  let k = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim().replace(/^["']|["']$/g, "");
+  if (!k || k === "undefined" || k === "null" || k.length < 20 || k.includes("placeholder")) {
+    return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1aWRzbW5zbW91dWRiZ29kdGNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2MjIxNDQsImV4cCI6MjEwNDE5ODE0NH0.kgecwVQPQdy3i5kHFp75reC4RJsmJZheJYxrzdBLTsA";
+  }
+  return k;
+}
+
 const nextConfig: NextConfig = {
   env: {
-    NEXT_PUBLIC_SUPABASE_URL:
-      process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      "https://cuidsmnsmouudbgodtcj.supabase.co",
-    NEXT_PUBLIC_SUPABASE_ANON_KEY:
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1aWRzbW5zbW91dWRiZ29kdGNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2MjIxNDQsImV4cCI6MjEwNDE5ODE0NH0.kgecwVQPQdy3i5kHFp75reC4RJsmJZheJYxrzdBLTsA",
+    NEXT_PUBLIC_SUPABASE_URL: getCleanUrl(),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: getCleanKey(),
     ADMIN_EMAIL: process.env.ADMIN_EMAIL || "psujith9087@gmail.com",
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || "Xxxsuji@123",
     AUTH_SECRET:
