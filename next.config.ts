@@ -32,6 +32,19 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL:
+      process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      "https://cuidsmnsmouudbgodtcj.supabase.co",
+    NEXT_PUBLIC_SUPABASE_ANON_KEY:
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1aWRzbW5zbW91dWRiZ29kdGNqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2MjIxNDQsImV4cCI6MjEwNDE5ODE0NH0.kgecwVQPQdy3i5kHFp75reC4RJsmJZheJYxrzdBLTsA",
+    ADMIN_EMAIL: process.env.ADMIN_EMAIL || "psujith9087@gmail.com",
+    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || "Xxxsuji@123",
+    AUTH_SECRET:
+      process.env.AUTH_SECRET ||
+      "z-electronics-super-secure-production-secret-key-2026",
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: "15mb",

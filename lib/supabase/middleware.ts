@@ -1,24 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getSupabaseUrl, getSupabaseAnonKey, isSupabaseConfigured } from "./client";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const isConfigured = Boolean(
-    url &&
-    url.startsWith("http") &&
-    !url.includes("placeholder") &&
-    key &&
-    !key.includes("placeholder")
-  );
+  const url = getSupabaseUrl();
+  const key = getSupabaseAnonKey();
+  const configured = isSupabaseConfigured();
 
   const supabase = createServerClient(
-    isConfigured ? url! : "https://placeholder-project.supabase.co",
-    isConfigured ? key! : "placeholder-anon-key",
+    configured ? url : "https://placeholder-project.supabase.co",
+    configured ? key : "placeholder-anon-key",
     {
       cookies: {
         getAll() {
@@ -39,7 +34,7 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  if (isConfigured) {
+  if (configured) {
     try {
       await supabase.auth.getUser();
     } catch {
