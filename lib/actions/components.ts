@@ -3,8 +3,6 @@
 import fs from "fs";
 import path from "path";
 import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured } from "@/lib/supabase/client";
-import { MOCK_COMPONENTS } from "@/lib/mock-data";
 import { ComponentItem } from "@/lib/types";
 import { revalidatePath } from "next/cache";
 import { checkAdminSession } from "@/lib/actions/admin-auth";
@@ -65,20 +63,25 @@ function decodeDescriptionAndImage(rawDescription: string | null | undefined): {
   return { description, imageUrl };
 }
 
+/**
+ * Fetch all components directly from the Supabase database.
+ * Never falls back to mock presets so user deletions and additions are 100% real.
+ */
 export async function getComponents(): Promise<ComponentItem[]> {
   try {
-    if (!isSupabaseConfigured()) {
-      return MOCK_COMPONENTS;
-    }
-
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("components")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (error || !data || data.length === 0) {
-      return MOCK_COMPONENTS;
+    if (error) {
+      console.error("Supabase error fetching components:", error.message);
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      return [];
     }
 
     const localMap = getLocalImageMap();
@@ -100,17 +103,58 @@ export async function getComponents(): Promise<ComponentItem[]> {
         const decoded = decodeDescriptionAndImage(item.description);
         const imageUrl = item.image_url || decoded.imageUrl || localMap[item.id] || "";
         return {
-          ...item,
+          id: item.id,
+          name: item.name,
+          price: Number(item.price),
+          stock_quantity: Number(item.stock_quantity),
           description: decoded.description,
           image_url: imageUrl,
+          created_at: item.created_at,
         };
       }) as ComponentItem[];
   } catch (error) {
-    console.error("Error fetching components:", error);
-    return MOCK_COMPONENTS;
+    console.error("Error fetching components from database:", error);
+    return [];
   }
 }
 
+/**
+ * Fetch a single component by ID from the Supabase database.
+ */
+export async function getComponentById(id: string): Promise<ComponentItem | null> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("components")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error || !data) {
+      return null;
+    }
+
+    const localMap = getLocalImageMap();
+    const decoded = decodeDescriptionAndImage(data.description);
+    const imageUrl = data.image_url || decoded.imageUrl || localMap[data.id] || "";
+
+    return {
+      id: data.id,
+      name: data.name,
+      price: Number(data.price),
+      stock_quantity: Number(data.stock_quantity),
+      description: decoded.description,
+      image_url: imageUrl,
+      created_at: data.created_at,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Add a new component permanently into Supabase database.
+ */
 export async function createComponent(formData: FormData): Promise<{ success: boolean; data?: ComponentItem; error?: string }> {
   const isAdmin = await checkAdminSession();
   if (!isAdmin) {
@@ -118,30 +162,14 @@ export async function createComponent(formData: FormData): Promise<{ success: bo
   }
 
   try {
-    const name = formData.get("name") as string;
-    const description = (formData.get("description") as string) || "";
+    const name = (formData.get("name") as string || "").trim();
+    const description = (formData.get("description") as string || "").trim();
     const price = parseFloat(formData.get("price") as string);
     const stock_quantity = parseInt(formData.get("stock_quantity") as string, 10);
     const image_url = ((formData.get("image_url") as string) || "").trim();
 
     if (!name || isNaN(price) || isNaN(stock_quantity)) {
       return { success: false, error: "Name, valid price, and stock quantity are required." };
-    }
-
-    if (!isSupabaseConfigured()) {
-      const newMock: ComponentItem = {
-        id: `comp-${Date.now()}`,
-        name,
-        description,
-        price,
-        stock_quantity,
-        image_url,
-        created_at: new Date().toISOString(),
-      };
-      MOCK_COMPONENTS.unshift(newMock);
-      revalidatePath("/");
-      revalidatePath("/admin");
-      return { success: true, data: newMock };
     }
 
     const supabase = await createClient();
@@ -160,7 +188,7 @@ export async function createComponent(formData: FormData): Promise<{ success: bo
       .select()
       .single();
 
-    // If table doesn't have image_url column yet, insert with encoded description
+    // If table doesn't have image_url column yet, insert without it (stored inside encoded description)
     if (error && (error.message.includes("image_url") || error.code === "PGRST204")) {
       delete payload.image_url;
       const retry = await supabase
@@ -173,7 +201,7 @@ export async function createComponent(formData: FormData): Promise<{ success: bo
     }
 
     if (error || !data) {
-      return { success: false, error: error?.message || "Failed to create component" };
+      return { success: false, error: error?.message || "Failed to create component in database." };
     }
 
     if (image_url && data.id) {
@@ -181,14 +209,19 @@ export async function createComponent(formData: FormData): Promise<{ success: bo
     }
 
     revalidatePath("/");
+    revalidatePath("/shop");
     revalidatePath("/admin");
     return {
       success: true,
       data: {
-        ...data,
+        id: data.id,
+        name: data.name,
         description,
+        price: Number(data.price),
+        stock_quantity: Number(data.stock_quantity),
         image_url,
-      } as ComponentItem,
+        created_at: data.created_at,
+      },
     };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to create component";
@@ -196,6 +229,9 @@ export async function createComponent(formData: FormData): Promise<{ success: bo
   }
 }
 
+/**
+ * Update an existing component in Supabase database.
+ */
 export async function updateComponent(
   id: string,
   formData: FormData
@@ -206,31 +242,14 @@ export async function updateComponent(
   }
 
   try {
-    const name = formData.get("name") as string;
-    const description = (formData.get("description") as string) || "";
+    const name = (formData.get("name") as string || "").trim();
+    const description = (formData.get("description") as string || "").trim();
     const price = parseFloat(formData.get("price") as string);
     const stock_quantity = parseInt(formData.get("stock_quantity") as string, 10);
     const image_url = ((formData.get("image_url") as string) || "").trim();
 
     if (!name || isNaN(price) || isNaN(stock_quantity)) {
       return { success: false, error: "Invalid data provided." };
-    }
-
-    if (!isSupabaseConfigured()) {
-      const index = MOCK_COMPONENTS.findIndex((c) => c.id === id);
-      if (index !== -1) {
-        MOCK_COMPONENTS[index] = {
-          ...MOCK_COMPONENTS[index],
-          name,
-          description,
-          price,
-          stock_quantity,
-          image_url,
-        };
-      }
-      revalidatePath("/");
-      revalidatePath("/admin");
-      return { success: true };
     }
 
     const supabase = await createClient();
@@ -272,14 +291,19 @@ export async function updateComponent(
     }
 
     revalidatePath("/");
+    revalidatePath("/shop");
     revalidatePath("/admin");
     return {
       success: true,
       data: {
-        ...(data || {}),
+        id,
+        name,
         description,
+        price: Number(price),
+        stock_quantity: Number(stock_quantity),
         image_url,
-      } as ComponentItem,
+        created_at: data?.created_at || new Date().toISOString(),
+      },
     };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to update component";
@@ -287,6 +311,10 @@ export async function updateComponent(
   }
 }
 
+/**
+ * Permanently delete a component from Supabase database.
+ * If referenced in past customer orders, archives it as __DELETED__ so order integrity is maintained.
+ */
 export async function deleteComponent(id: string): Promise<{ success: boolean; error?: string }> {
   const isAdmin = await checkAdminSession();
   if (!isAdmin) {
@@ -294,35 +322,26 @@ export async function deleteComponent(id: string): Promise<{ success: boolean; e
   }
 
   try {
-    if (!isSupabaseConfigured()) {
-      const idx = MOCK_COMPONENTS.findIndex((c) => c.id === id);
-      if (idx !== -1) {
-        MOCK_COMPONENTS.splice(idx, 1);
-      }
-      revalidatePath("/");
-      revalidatePath("/admin");
-      return { success: true };
-    }
-
     const supabase = await createClient();
 
-    // 1. First attempt a standard direct delete
+    // 1. Attempt direct delete from database
     const { error: directError } = await supabase.from("components").delete().eq("id", id);
 
     if (!directError) {
       deleteLocalImageMap(id);
       revalidatePath("/");
+      revalidatePath("/shop");
       revalidatePath("/admin");
       return { success: true };
     }
 
-    // 2. If it violates foreign key constraint (code 23503 because component is referenced in past customer orders)
+    // 2. If it violates foreign key constraint (referenced in past order_items)
     if (
       directError.code === "23503" ||
       directError.message.includes("violates foreign key constraint") ||
       directError.message.includes("order_items")
     ) {
-      // Safely archive/soft-delete it by marking it as __DELETED__
+      // Archive it cleanly as __DELETED__ with 0 stock
       const { error: archiveError } = await supabase
         .from("components")
         .update({
@@ -337,6 +356,7 @@ export async function deleteComponent(id: string): Promise<{ success: boolean; e
 
       deleteLocalImageMap(id);
       revalidatePath("/");
+      revalidatePath("/shop");
       revalidatePath("/admin");
       return { success: true };
     }
@@ -344,6 +364,53 @@ export async function deleteComponent(id: string): Promise<{ success: boolean; e
     return { success: false, error: directError.message };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to delete component";
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Delete all standard inventory components from Supabase database (admin reset).
+ */
+export async function deleteAllComponents(): Promise<{ success: boolean; count?: number; error?: string }> {
+  const isAdmin = await checkAdminSession();
+  if (!isAdmin) {
+    return { success: false, error: "Unauthorized. Admin privileges required." };
+  }
+
+  try {
+    const supabase = await createClient();
+    const { data: allComps, error: fetchError } = await supabase
+      .from("components")
+      .select("id, description, name");
+
+    if (fetchError) {
+      return { success: false, error: fetchError.message };
+    }
+
+    let deletedCount = 0;
+    for (const comp of allComps || []) {
+      const name = comp.name || "";
+      const desc = comp.description || "";
+      // Don't delete projects or site settings
+      if (
+        name.startsWith("[PROJECT]") ||
+        name.startsWith("[SITE_SETTINGS]") ||
+        desc.includes("__PROJECT__") ||
+        desc.includes("__SITE_SETTINGS__")
+      ) {
+        continue;
+      }
+
+      await deleteComponent(comp.id);
+      deletedCount++;
+    }
+
+    revalidatePath("/");
+    revalidatePath("/shop");
+    revalidatePath("/admin");
+    return { success: true, count: deletedCount };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to delete all components";
     return { success: false, error: message };
   }
 }
