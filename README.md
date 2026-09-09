@@ -13,6 +13,8 @@ A full-stack e-commerce web application and inventory management portal built sp
   - Instant order placement without requiring customer account creation.
   - Automatic inventory stock decrement trigger in Supabase PostgreSQL.
   - On-screen itemized official Bill / Invoice with **Print PDF** and **WhatsApp Sujith** sharing buttons.
+- **5-Star Customer Reviews System:** Customers can leave ratings which are stored in the database. Verified reviews are publicly displayed.
+- **Mr. Z AI Assistant:** Integrated Gemini-powered AI agent to answer technical hardware queries, provide code snippets, and guide users directly on the storefront.
 - **Direct Contact & Community Integration:**
   - Floating WhatsApp button and banner linking directly to the official **WhatsApp Community**:
     `https://chat.whatsapp.com/DjbAyUOmEgN67QDo0pPcGM`
@@ -24,6 +26,23 @@ A full-stack e-commerce web application and inventory management portal built sp
   - Direct support for Supabase Auth accounts.
 - **Inventory Management:** Add new electronic components, edit stock levels/prices/descriptions, or remove components.
 - **Live Order Management:** Real-time customer order tracking with status toggles (`Pending` ↔ `Completed`), itemized component breakdown dialog, and quick **Call** or **WhatsApp** customer action buttons.
+- **Reviews & AI Management:** Moderation dashboard to Verify/Delete customer reviews and configure the Mr. Z AI agent.
+
+---
+
+## 🧑‍💻 Repository Architecture (Neat & Clean Fullstack)
+
+This repository is structured as a modern **Next.js App Router** application, natively unifying Frontend, Backend, and Database clients into a single secure codebase:
+
+- **🌐 Frontend (Client UI & Routes):** 
+  - `app/` - Contains all page routes, layouts, and global styles (`app/globals.css`).
+  - `components/` - Reusable React UI blocks (e.g., `components/ui/button.tsx`, `components/home/`, `components/ai/`).
+- **⚙️ Backend (Server-Side Logic):** 
+  - `lib/actions/` - Secure Next.js Server Actions (e.g., `ai-agent.ts`, `reviews.ts`, `orders.ts`) running exclusively on the backend.
+  - `lib/security.ts` - Core security layer with JWT tokens, rate limiting, and XSS sanitization.
+- **💾 Database (Supabase PostgreSQL):**
+  - `DATABASE_SCHEMA.sql` - The complete database schema with tables, Row-Level Security (RLS) policies, and trigger functions.
+  - `lib/supabase/` - The backend database client handlers to read/write from Supabase.
 
 ---
 
