@@ -5,6 +5,7 @@ import { getPaymentConfig } from "@/lib/actions/payment";
 import { getProjects } from "@/lib/actions/projects";
 import { getSiteStats } from "@/lib/actions/site-stats";
 import { getAllReviewsAdmin } from "@/lib/actions/reviews";
+import { getMrZInquiriesAdmin, getGeminiConfig } from "@/lib/actions/ai-agent";
 import { formatPrice } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,8 +15,9 @@ import { PaymentQrManager } from "./payment-qr-manager";
 import { ProjectsManager } from "./projects-manager";
 import { StatsManager } from "./stats-manager";
 import { ReviewsManager } from "./reviews-manager";
+import { AiManager } from "./ai-manager";
 import AdminLoginPage from "./login/page";
-import { Cpu, ShoppingBag, Clock, CheckCircle2, IndianRupee, QrCode, Trophy, Sparkles, Star } from "lucide-react";
+import { Cpu, ShoppingBag, Clock, CheckCircle2, IndianRupee, QrCode, Trophy, Sparkles, Star, Bot } from "lucide-react";
 
 export const revalidate = 0; // Fresh inventory, orders & reviews
 
@@ -26,13 +28,15 @@ export default async function AdminDashboardPage() {
     return <AdminLoginPage />;
   }
 
-  const [components, orders, paymentConfig, projects, siteStats, reviewsData] = await Promise.all([
+  const [components, orders, paymentConfig, projects, siteStats, reviewsData, inquiriesData, geminiConfig] = await Promise.all([
     getComponents(),
     getAllOrders(),
     getPaymentConfig(),
     getProjects(),
     getSiteStats(),
     getAllReviewsAdmin(),
+    getMrZInquiriesAdmin(),
+    getGeminiConfig(),
   ]);
 
   const totalRevenue = orders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
@@ -253,6 +257,14 @@ export default async function AdminDashboardPage() {
             <Sparkles className="h-4 w-4 mr-2 text-primary" />
             Homepage Highlights
           </TabsTrigger>
+
+          <TabsTrigger
+            value="ai-agent"
+            className="rounded-lg h-10 px-5 text-xs sm:text-sm font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
+            <Bot className="h-4 w-4 mr-2 text-indigo-500" />
+            Mr. Z AI Assistant
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="inventory" className="outline-none focus:outline-none">
@@ -277,6 +289,10 @@ export default async function AdminDashboardPage() {
 
         <TabsContent value="stats" className="outline-none focus:outline-none">
           <StatsManager initialStats={siteStats} />
+        </TabsContent>
+
+        <TabsContent value="ai-agent" className="outline-none focus:outline-none">
+          <AiManager initialInquiries={inquiriesData.inquiries} initialConfig={geminiConfig} />
         </TabsContent>
       </Tabs>
     </div>

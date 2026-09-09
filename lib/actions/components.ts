@@ -96,9 +96,11 @@ export async function getComponents(): Promise<ComponentItem[]> {
           !desc.includes("__SITE_SETTINGS__") &&
           !desc.includes("__PAYMENT_CONFIG__") &&
           !desc.includes("__REVIEW__") &&
+          !desc.includes("__GEMINI_KEY__") &&
           !name.startsWith("[PROJECT]") &&
           !name.startsWith("[SITE_SETTINGS]") &&
-          !name.startsWith("[REVIEW]")
+          !name.startsWith("[REVIEW]") &&
+          !name.startsWith("[AI_SETTINGS]")
         );
       })
       .map((item: any) => {

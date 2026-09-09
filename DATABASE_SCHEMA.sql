@@ -253,4 +253,29 @@ VALUES
   ('Sanjay V.', 5, 'Direct Silicon Supply You Can Trust', 'Metal film resistor kits and Li-Ion battery charger modules arrived impeccably packed with protective static bags. Highly recommended for makers.', 'Aeromodelling Tech Team', true, now() - INTERVAL '3 days')
 ON CONFLICT DO NOTHING;
 
+-- ============================================================
+-- 10. MR. Z AI ASSISTANT INQUIRIES & CONVERSATIONS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.ai_inquiries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  query TEXT NOT NULL,
+  topic TEXT DEFAULT 'Hardware & Circuits',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_inquiries_created_at ON public.ai_inquiries(created_at DESC);
+
+-- RLS for AI Inquiries Table
+ALTER TABLE public.ai_inquiries ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public insert ai inquiries"
+  ON public.ai_inquiries FOR INSERT
+  WITH CHECK (true);
+
+CREATE POLICY "Public read ai inquiries"
+  ON public.ai_inquiries FOR SELECT
+  USING (true);
+
+
 

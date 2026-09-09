@@ -59,6 +59,7 @@ const nextConfig: NextConfig = {
     AUTH_SECRET:
       process.env.AUTH_SECRET ||
       "z-electronics-super-secure-production-secret-key-2026",
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY || "",
   },
   experimental: {
     serverActions: {

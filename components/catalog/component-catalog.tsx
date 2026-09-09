@@ -320,7 +320,7 @@ export function ComponentCatalog({ components }: ComponentCatalogProps) {
                             type="button"
                             onClick={() => handleQuantityChange(component.id, -1, component.stock_quantity)}
                             disabled={qty <= 1 || isOutOfStock}
-                            className="px-3 h-full text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30 transition-all active:scale-75"
+                            className="px-3 h-full text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30 transition-transform duration-75 active:scale-90"
                             aria-label="Decrease quantity"
                           >
                             <Minus className="h-3 w-3" />
@@ -332,7 +332,7 @@ export function ComponentCatalog({ components }: ComponentCatalogProps) {
                             type="button"
                             onClick={() => handleQuantityChange(component.id, 1, component.stock_quantity)}
                             disabled={isOutOfStock || qty >= component.stock_quantity}
-                            className="px-3 h-full text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30 transition-all active:scale-75"
+                            className="px-3 h-full text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30 transition-transform duration-75 active:scale-90"
                             aria-label="Increase quantity"
                           >
                             <Plus className="h-3 w-3" />
@@ -344,7 +344,7 @@ export function ComponentCatalog({ components }: ComponentCatalogProps) {
                           type="button"
                           onClick={() => handleAddToCart(component)}
                           disabled={isOutOfStock}
-                          className={`flex-1 h-10 rounded-full gap-1.5 text-xs font-bold transition-all duration-200 active:scale-95 shadow-sm ${
+                          className={`flex-1 h-10 rounded-full gap-1.5 text-xs font-bold transition-all duration-75 active:scale-[0.98] shadow-sm ${
                             isAdded
                               ? "bg-emerald-600 hover:bg-emerald-600 text-white shadow-emerald-600/20"
                               : "hover:shadow-md"

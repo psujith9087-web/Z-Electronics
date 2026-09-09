@@ -104,8 +104,6 @@ export function AntigravityCursor() {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fillStyle = `${p.color}${p.alpha})`;
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = `${p.color}0.4)`;
         ctx.fill();
       }
 
