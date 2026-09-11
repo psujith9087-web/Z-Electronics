@@ -40,21 +40,24 @@ const MascotAvatar = ({ className }: { className?: string }) => (
 
 export function MrZAssistant() {
   const [isOpen, setIsOpen] = useState(false);
-  const [introStage, setIntroStage] = useState<"greeting" | "moving" | "finished">("finished");
+  const [introStage, setIntroStage] = useState<"walking-in" | "greeting" | "moving" | "finished">("finished");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const played = sessionStorage.getItem("mrz-intro-played");
+      const played = sessionStorage.getItem("mrz-intro-played-v2");
       if (!played) {
-        setIntroStage("greeting");
-        sessionStorage.setItem("mrz-intro-played", "true");
+        setIntroStage("walking-in");
+        sessionStorage.setItem("mrz-intro-played-v2", "true");
       }
     }
   }, []);
 
   useEffect(() => {
-    if (introStage === "greeting") {
-      const timer = setTimeout(() => setIntroStage("moving"), 3000);
+    if (introStage === "walking-in") {
+      const timer = setTimeout(() => setIntroStage("greeting"), 1500);
+      return () => clearTimeout(timer);
+    } else if (introStage === "greeting") {
+      const timer = setTimeout(() => setIntroStage("moving"), 2500);
       return () => clearTimeout(timer);
     } else if (introStage === "moving") {
       const timer = setTimeout(() => setIntroStage("finished"), 800);
@@ -270,14 +273,25 @@ export function MrZAssistant() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.5 } }}
           >
-            <div className="relative flex flex-col items-center">
+            <motion.div 
+              className="relative flex flex-col items-center"
+              initial={{ x: "-100vw", y: 0 }}
+              animate={introStage === "walking-in" ? { 
+                x: 0, 
+                y: [0, -30, 0, -30, 0, -20, 0] 
+              } : { x: 0, y: 0 }}
+              transition={{ 
+                x: { duration: 1.5, type: "spring", stiffness: 50, damping: 15 },
+                y: { duration: 1.5, ease: "easeInOut" }
+              }}
+            >
               <AnimatePresence>
                 {introStage === "greeting" && (
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.5, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                    transition={{ delay: 0.3, type: "spring", stiffness: 200, damping: 15 }}
+                    transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 15 }}
                     className="bg-card text-card-foreground px-6 py-4 rounded-3xl shadow-2xl border border-border text-center mb-4 relative origin-bottom"
                   >
                     <p className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-cyan-500 mb-1">
@@ -295,9 +309,9 @@ export function MrZAssistant() {
                 layoutId="mascot-core"
                 className="relative drop-shadow-2xl overflow-hidden bg-transparent"
                 style={{ 
-                  borderRadius: introStage === "greeting" ? "40px" : "999px", 
-                  width: introStage === "greeting" ? 280 : 56, 
-                  height: introStage === "greeting" ? 360 : 56 
+                  borderRadius: introStage !== "moving" ? "40px" : "999px", 
+                  width: introStage !== "moving" ? 280 : 56, 
+                  height: introStage !== "moving" ? 360 : 56 
                 }}
                 transition={{ duration: 0.8, type: "spring", bounce: 0.2 }}
               >
@@ -305,11 +319,11 @@ export function MrZAssistant() {
                   src="/images/mr-z-mascot.png" 
                   alt="Mr. Z Mascot" 
                   fill 
-                  className={introStage === "greeting" ? "object-contain" : "object-cover object-top scale-[1.3] translate-y-1"} 
+                  className={introStage !== "moving" ? "object-contain" : "object-cover object-top scale-[1.3] translate-y-1"} 
                   priority 
                 />
               </motion.div>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
