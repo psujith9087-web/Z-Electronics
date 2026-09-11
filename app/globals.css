@@ -431,3 +431,12 @@ button:not(:disabled):active,
   background-size: 300% 300%;
   animation: google-color-flow 6s ease infinite;
 }
+/* Custom Z Cursors */
+* {
+  cursor: url('/z-cursor.svg') 1 1, auto !important;
+}
+
+a, button, [role='button'], input[type='submit'], input[type='reset'], .cursor-pointer {
+  cursor: url('/z-cursor-pointer.svg') 1 1, pointer !important;
+}
+
