@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
-  <!-- Sleek Dark Arrowhead -->
-  <path d="M 1 1 L 12 26 L 15 15 L 26 12 Z" fill="#09090b" stroke="#0ea5e9" stroke-width="1.5" stroke-linejoin="round"/>
-  <!-- Emblazoned White Z -->
-  <polyline points="5,7 10,7 5,13 10,13" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
-</svg>

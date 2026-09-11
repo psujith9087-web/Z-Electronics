@@ -1,129 +1,100 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  size: number;
-  alpha: number;
-  decay: number;
-  color: string;
-}
+import { useEffect, useState } from "react";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 
 export function AntigravityCursor() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isHovering, setIsHovering] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Use motion values for raw mouse position
+  const mouseX = useMotionValue(-100);
+  const mouseY = useMotionValue(-100);
+
+  // Spring physics for the outer ring (creates the smooth trailing effect)
+  const springConfig = { damping: 25, stiffness: 400, mass: 0.5 };
+  const smoothX = useSpring(mouseX, springConfig);
+  const smoothY = useSpring(mouseY, springConfig);
 
   useEffect(() => {
-    // Only run on desktop/pointer devices to preserve battery on mobile
+    // Disable on mobile/touch devices
     if (typeof window === "undefined" || window.matchMedia("(pointer: coarse)").matches) {
       return;
     }
 
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    setIsVisible(true);
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let animFrameId: number;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-
-    const particles: Particle[] = [];
-    const colors = [
-      "rgba(37, 99, 235, ",   // Electric Blue
-      "rgba(59, 130, 246, ",  // Tech Blue
-      "rgba(147, 197, 253, ", // Soft Cyan
-      "rgba(16, 185, 129, ",  // Emerald accent
-      "rgba(168, 85, 247, ",  // Violet
-    ];
-
-    const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
+    const updateMousePosition = (e: MouseEvent) => {
+      mouseX.set(e.clientX);
+      mouseY.set(e.clientY);
     };
 
-    window.addEventListener("resize", handleResize);
-
-    let mouseX = -100;
-    let mouseY = -100;
-    let lastX = -100;
-    let lastY = -100;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-
-      const dist = Math.hypot(mouseX - lastX, mouseY - lastY);
-
-      // Spawn micro-particles along movement vector
-      if (dist > 6) {
-        const count = Math.min(Math.floor(dist / 8), 4);
-        for (let i = 0; i < count; i++) {
-          const color = colors[Math.floor(Math.random() * colors.length)];
-          particles.push({
-            x: mouseX + (Math.random() - 0.5) * 8,
-            y: mouseY + (Math.random() - 0.5) * 8,
-            // Anti-gravity float: negative vy (upward)
-            vx: (Math.random() - 0.5) * 1.2,
-            vy: -0.6 - Math.random() * 1.4,
-            size: 1.5 + Math.random() * 2.2,
-            alpha: 0.65 + Math.random() * 0.35,
-            decay: 0.015 + Math.random() * 0.02,
-            color,
-          });
-        }
-        lastX = mouseX;
-        lastY = mouseY;
+    const handleMouseOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Check if hovering over a clickable element
+      if (
+        target.closest("a") ||
+        target.closest("button") ||
+        target.closest("input") ||
+        target.closest("textarea") ||
+        target.closest("[role='button']") ||
+        window.getComputedStyle(target).cursor === "pointer"
+      ) {
+        setIsHovering(true);
+      } else {
+        setIsHovering(false);
       }
     };
 
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
-
-    const render = () => {
-      ctx.clearRect(0, 0, width, height);
-
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-
-        // Anti-gravity motion
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy -= 0.02; // Continual upward gentle buoyancy
-        p.alpha -= p.decay;
-
-        if (p.alpha <= 0) {
-          particles.splice(i, 1);
-          continue;
-        }
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `${p.color}${p.alpha})`;
-        ctx.fill();
-      }
-
-      animFrameId = requestAnimationFrame(render);
-    };
-
-    render();
+    window.addEventListener("mousemove", updateMousePosition, { passive: true });
+    window.addEventListener("mouseover", handleMouseOver, { passive: true });
 
     return () => {
-      cancelAnimationFrame(animFrameId);
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mousemove", updateMousePosition);
+      window.removeEventListener("mouseover", handleMouseOver);
     };
-  }, []);
+  }, [mouseX, mouseY]);
+
+  if (!isVisible) return null;
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="pointer-events-none fixed inset-0 z-50 h-full w-full select-none"
-      aria-hidden="true"
-    />
+    <>
+      {/* Global style to hide default cursor when this component is active */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        * {
+          cursor: none !important;
+        }
+      `}} />
+      
+      {/* Outer smooth trailing ring */}
+      <motion.div
+        className="pointer-events-none fixed left-0 top-0 z-[9998] flex items-center justify-center rounded-full border border-cyan-400 mix-blend-difference"
+        style={{
+          x: smoothX,
+          y: smoothY,
+          // Shift -50% -50% via margins so x/y represent the exact center
+          marginLeft: isHovering ? -24 : -16,
+          marginTop: isHovering ? -24 : -16,
+          width: isHovering ? 48 : 32,
+          height: isHovering ? 48 : 32,
+          backgroundColor: isHovering ? "rgba(34, 211, 238, 0.15)" : "transparent",
+        }}
+        animate={{
+          scale: isHovering ? 1.1 : 1,
+        }}
+        transition={{ duration: 0.15, ease: "easeOut" }}
+      />
+
+      {/* Tiny fast center dot */}
+      <motion.div
+        className="pointer-events-none fixed left-0 top-0 z-[9999] h-1.5 w-1.5 rounded-full bg-cyan-400 mix-blend-difference"
+        style={{
+          x: mouseX,
+          y: mouseY,
+          marginLeft: -3,
+          marginTop: -3,
+        }}
+      />
+    </>
   );
 }
