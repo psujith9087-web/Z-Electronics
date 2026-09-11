@@ -59,41 +59,39 @@ export function AntigravityCursor() {
 
   return (
     <>
-      {/* Global style to hide default cursor when this component is active */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        * {
-          cursor: none !important;
-        }
-      `}} />
-      
-      {/* Outer smooth trailing ring */}
+      {/* Outer smooth glowing aura that trails behind the default cursor */}
       <motion.div
-        className="pointer-events-none fixed left-0 top-0 z-[9998] flex items-center justify-center rounded-full border border-cyan-400 mix-blend-difference"
+        className="pointer-events-none fixed left-0 top-0 z-[9998] flex items-center justify-center rounded-full bg-cyan-500/20 blur-md mix-blend-screen"
         style={{
           x: smoothX,
           y: smoothY,
-          // Shift -50% -50% via margins so x/y represent the exact center
-          marginLeft: isHovering ? -24 : -16,
-          marginTop: isHovering ? -24 : -16,
-          width: isHovering ? 48 : 32,
-          height: isHovering ? 48 : 32,
-          backgroundColor: isHovering ? "rgba(34, 211, 238, 0.15)" : "transparent",
+          // Shift -50% -50% via margins
+          marginLeft: isHovering ? -32 : -20,
+          marginTop: isHovering ? -32 : -20,
+          width: isHovering ? 64 : 40,
+          height: isHovering ? 64 : 40,
         }}
         animate={{
-          scale: isHovering ? 1.1 : 1,
+          scale: isHovering ? 1.2 : 1,
         }}
-        transition={{ duration: 0.15, ease: "easeOut" }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
       />
 
-      {/* Tiny fast center dot */}
+      {/* Crisp outer ring following the exact mouse position */}
       <motion.div
-        className="pointer-events-none fixed left-0 top-0 z-[9999] h-1.5 w-1.5 rounded-full bg-cyan-400 mix-blend-difference"
+        className="pointer-events-none fixed left-0 top-0 z-[9999] rounded-full border border-cyan-400/50 mix-blend-difference"
         style={{
           x: mouseX,
           y: mouseY,
-          marginLeft: -3,
-          marginTop: -3,
+          marginLeft: isHovering ? -16 : -8,
+          marginTop: isHovering ? -16 : -8,
+          width: isHovering ? 32 : 16,
+          height: isHovering ? 32 : 16,
         }}
+        animate={{
+          scale: isHovering ? 1.5 : 1,
+        }}
+        transition={{ duration: 0.15 }}
       />
     </>
   );
