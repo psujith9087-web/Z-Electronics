@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { askMrZ, ChatMessage } from "@/lib/actions/ai-agent";
 import { useCartStore } from "@/lib/store/cart-store";
 import { Button } from "@/components/ui/button";
@@ -23,8 +25,43 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+
+const MascotAvatar = ({ className }: { className?: string }) => (
+  <div className={`relative overflow-hidden bg-yellow-400 rounded-full ${className || ""}`}>
+    <Image 
+      src="/images/mr-z-mascot.png" 
+      alt="Mr. Z" 
+      fill 
+      sizes="40px"
+      className="object-cover object-top scale-[1.3] translate-y-[2px]" 
+    />
+  </div>
+);
+
 export function MrZAssistant() {
   const [isOpen, setIsOpen] = useState(false);
+  const [introStage, setIntroStage] = useState<"greeting" | "moving" | "finished">("finished");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const played = sessionStorage.getItem("mrz-intro-played");
+      if (!played) {
+        setIntroStage("greeting");
+        sessionStorage.setItem("mrz-intro-played", "true");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (introStage === "greeting") {
+      const timer = setTimeout(() => setIntroStage("moving"), 3000);
+      return () => clearTimeout(timer);
+    } else if (introStage === "moving") {
+      const timer = setTimeout(() => setIntroStage("finished"), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [introStage]);
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
@@ -225,39 +262,90 @@ export function MrZAssistant() {
 
   return (
     <>
+      <AnimatePresence>
+        {introStage !== "finished" && (
+          <motion.div 
+            className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none bg-background/40 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { duration: 0.5 } }}
+          >
+            <div className="relative flex flex-col items-center">
+              <AnimatePresence>
+                {introStage === "greeting" && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.5, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                    transition={{ delay: 0.3, type: "spring", stiffness: 200, damping: 15 }}
+                    className="bg-card text-card-foreground px-6 py-4 rounded-3xl shadow-2xl border border-border text-center mb-4 relative origin-bottom"
+                  >
+                    <p className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-cyan-500 mb-1">
+                      Hi! I'm Mr. Z!
+                    </p>
+                    <p className="font-medium text-sm text-muted-foreground">
+                      Your personal hardware assistant.
+                    </p>
+                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-l-transparent border-t-[12px] border-t-card border-r-[12px] border-r-transparent drop-shadow-sm"></div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
+              <motion.div 
+                layoutId="mascot-core"
+                className="relative drop-shadow-2xl overflow-hidden bg-transparent"
+                style={{ 
+                  borderRadius: introStage === "greeting" ? "40px" : "999px", 
+                  width: introStage === "greeting" ? 280 : 56, 
+                  height: introStage === "greeting" ? 360 : 56 
+                }}
+                transition={{ duration: 0.8, type: "spring", bounce: 0.2 }}
+              >
+                <Image 
+                  src="/images/mr-z-mascot.png" 
+                  alt="Mr. Z Mascot" 
+                  fill 
+                  className={introStage === "greeting" ? "object-contain" : "object-cover object-top scale-[1.3] translate-y-1"} 
+                  priority 
+                />
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Floating Launcher Button (Stacked Above WhatsApp at bottom-24 right-6) ── */}
-      <div className="fixed bottom-24 right-6 z-40 group flex items-center">
+      <div className="fixed bottom-24 right-6 z-40 group flex flex-col items-end gap-3">
         {/* Tooltip on hover */}
         <div className="pointer-events-none absolute right-16 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0 hidden sm:flex items-center gap-2 whitespace-nowrap rounded-full bg-background/95 border border-border/80 px-3.5 py-1.5 text-xs font-bold text-foreground shadow-lg backdrop-blur-md">
           <span className="h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
           <span>Ask Mr. Z (AI Hardware Engineer)</span>
         </div>
 
-        {/* Outer Glow Ring */}
-        <div className="absolute inset-0 rounded-full bg-indigo-500/25 animate-radar pointer-events-none" />
-
-        {/* Launcher Button */}
-        <button
-          type="button"
-          onClick={() => setIsOpen((prev) => !prev)}
-          className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-500 text-white shadow-[0_8px_30px_rgba(99,102,241,0.4)] transition-transform duration-75 active:scale-95 ring-4 ring-indigo-500/30 cursor-pointer"
-          title="Ask Mr. Z — AI Hardware Assistant"
-          aria-label="Open Mr. Z AI Hardware Assistant"
-        >
-          {isOpen ? (
-            <X className="h-6 w-6 transition-transform duration-150 rotate-90" />
-          ) : (
-            <div className="relative flex items-center justify-center">
-              <Bot className="h-7 w-7 transition-transform group-hover:scale-110" />
-              <Sparkles className="h-3 w-3 absolute -top-1 -right-1 text-cyan-300 animate-pulse" />
-            </div>
-          )}
-
-          {/* AI Badge on launcher */}
-          <span className="absolute -bottom-1 font-black text-[9px] px-1.5 py-0.2 bg-zinc-950/90 text-cyan-400 rounded-full border border-cyan-500/40 tracking-wider uppercase">
-            Mr. Z
-          </span>
-        </button>
+        {introStage === "finished" && (
+          <motion.button
+            layoutId="mascot-core"
+            type="button"
+            onClick={() => setIsOpen((prev) => !prev)}
+            className="relative flex h-14 w-14 items-center justify-center rounded-full bg-yellow-400 text-white shadow-[0_8px_30px_rgba(250,204,21,0.4)] transition-transform duration-75 active:scale-95 ring-4 ring-yellow-400/30 cursor-pointer overflow-hidden"
+            title="Ask Mr. Z — AI Hardware Assistant"
+            aria-label="Open Mr. Z AI Hardware Assistant"
+            transition={{ duration: 0.8, type: "spring", bounce: 0.2 }}
+          >
+            {isOpen ? (
+              <X className="h-6 w-6 text-yellow-950 transition-transform duration-150 rotate-90 z-10" />
+            ) : (
+              <div className="absolute inset-0">
+                <Image src="/images/mr-z-mascot.png" alt="Mr. Z Face" fill sizes="56px" className="object-cover object-top scale-[1.3] translate-y-1 transition-transform group-hover:scale-[1.4]" />
+              </div>
+            )}
+            
+            {/* AI Badge on launcher */}
+            <span className="absolute -bottom-1 font-black text-[9px] px-1.5 py-0.2 bg-zinc-950/90 text-cyan-400 rounded-full border border-cyan-500/40 tracking-wider uppercase z-10">
+              Mr. Z
+            </span>
+          </motion.button>
+        )}
       </div>
 
       {/* ── Chat Window (Drawer / Modal) ── */}
@@ -270,8 +358,8 @@ export function MrZAssistant() {
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border/70 bg-gradient-to-r from-indigo-950/30 via-background to-cyan-950/20">
             <div className="flex items-center gap-2.5">
-              <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 text-white shadow-sm ring-2 ring-cyan-500/20">
-                <Bot className="h-5 w-5" />
+              <div className="relative">
+                <MascotAvatar className="h-9 w-9 shadow-sm ring-2 ring-cyan-500/20" />
                 <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-card" />
               </div>
               <div>
@@ -320,9 +408,7 @@ export function MrZAssistant() {
                   className={`flex gap-2.5 ${isAssistant ? "items-start" : "items-end justify-end"}`}
                 >
                   {isAssistant && (
-                    <div className="h-7 w-7 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center font-bold text-xs shrink-0 ring-1 ring-indigo-500/20 mt-0.5">
-                      <Bot className="h-4 w-4" />
-                    </div>
+                    <MascotAvatar className="h-7 w-7 shrink-0 ring-1 ring-indigo-500/20 mt-0.5" />
                   )}
 
                   <div
@@ -340,9 +426,7 @@ export function MrZAssistant() {
 
             {isLoading && (
               <div className="flex gap-2.5 items-start">
-                <div className="h-7 w-7 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center text-xs shrink-0 ring-1 ring-indigo-500/20 mt-0.5">
-                  <Bot className="h-4 w-4 animate-bounce" />
-                </div>
+                <MascotAvatar className="h-7 w-7 shrink-0 ring-1 ring-indigo-500/20 mt-0.5 animate-bounce" />
                 <div className="rounded-2xl rounded-tl-xs px-3.5 py-2.5 bg-muted/60 border border-border/60 text-muted-foreground flex items-center gap-2">
                   <span className="flex gap-1">
                     <span className="h-1.5 w-1.5 rounded-full bg-cyan-500 animate-pulse" />
