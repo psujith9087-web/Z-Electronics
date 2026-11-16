@@ -3,6 +3,7 @@ import { ArrowRight, FileText, Truck, Cpu, ShieldCheck } from "lucide-react";
 import { DreamyButterflies } from "@/components/effects/dreamy-butterflies";
 import { FloatingPcbTraces } from "@/components/effects/floating-pcb-traces";
 import { InteractiveHeroHeadline } from "@/components/home/interactive-hero-headline";
+import { Hero3dVideoStage } from "@/components/home/hero-3d-video-stage";
 
 export default function HeroSection() {
   // Out-of-focus neon particles (cyan and purple)
@@ -123,6 +124,9 @@ export default function HeroSection() {
             <span>Consult with Engineer</span>
           </a>
         </div>
+
+        {/* -- Interactive 3D Cinematic Hardware Stage (Interactive 3D Video Showcase) -- */}
+        <Hero3dVideoStage />
 
         {/* -- Bottom Trust Banner: 3 Minimal Faded Badges ---------------- */}
         <div className="mt-14 sm:mt-16 pt-8 border-t border-zinc-900/80 max-w-2xl mx-auto flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-semibold text-zinc-400">
